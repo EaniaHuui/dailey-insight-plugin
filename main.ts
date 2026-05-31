@@ -125,8 +125,6 @@ class ObsidianRecallPlugin extends Plugin {
 				cubox_tags: this.settings.cuboxTags,
 				sync_mode: "local",
 				daily_push_count: this.settings.dailyPushCount,
-				enable_summary: false,
-				summary_prompt: "",
 				excluded_folders: this.settings.excludedFolders,
 				min_note_length: this.settings.minNoteLength
 			});
@@ -483,8 +481,6 @@ class ObsidianRecallPlugin extends Plugin {
 			cubox_tags: this.settings.cuboxTags,
 			sync_mode: "local",
 			daily_push_count: this.settings.dailyPushCount,
-			enable_summary: false,
-			summary_prompt: "",
 			excluded_folders: this.settings.excludedFolders,
 			min_note_length: this.settings.minNoteLength
 		});
@@ -1041,7 +1037,7 @@ class PushHistoryModal extends Modal {
 			detailButton.onclick = async () => {
 				try {
 					const detail = await this.client.getPushHistoryDetail(item.id);
-					const body = detail.summary?.trim() || detail.content?.trim() || "(无内容)";
+					const body = detail.content?.trim() || detail.summary?.trim() || "(无内容)";
 					new DetailModal(this.app, detail.note_title || "(无标题)", detail.note_path, body, detail.pushed_at).open();
 				} catch (error) {
 					new Notice(`读取详情失败：${formatError(error)}`);

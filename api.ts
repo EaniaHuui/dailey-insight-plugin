@@ -33,8 +33,6 @@ export interface RemoteUserSettings {
 	cubox_tags: string[];
 	sync_mode: "local";
 	daily_push_count: number;
-	enable_summary: boolean;
-	summary_prompt: string;
 	excluded_folders: string[];
 	min_note_length: number;
 	storage_used_bytes: number;
@@ -51,8 +49,6 @@ export interface UpdateUserSettingsRequest {
 	cubox_tags: string[];
 	sync_mode: "local";
 	daily_push_count: number;
-	enable_summary: boolean;
-	summary_prompt: string;
 	excluded_folders: string[];
 	min_note_length: number;
 }

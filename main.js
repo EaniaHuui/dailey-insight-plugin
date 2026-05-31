@@ -274,8 +274,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
         cubox_tags: this.settings.cuboxTags,
         sync_mode: "local",
         daily_push_count: this.settings.dailyPushCount,
-        enable_summary: false,
-        summary_prompt: "",
         excluded_folders: this.settings.excludedFolders,
         min_note_length: this.settings.minNoteLength
       });
@@ -599,8 +597,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       cubox_tags: this.settings.cuboxTags,
       sync_mode: "local",
       daily_push_count: this.settings.dailyPushCount,
-      enable_summary: false,
-      summary_prompt: "",
       excluded_folders: this.settings.excludedFolders,
       min_note_length: this.settings.minNoteLength
     });
@@ -1012,7 +1008,7 @@ var PushHistoryModal = class extends import_obsidian2.Modal {
         var _a, _b;
         try {
           const detail = await this.client.getPushHistoryDetail(item.id);
-          const body = ((_a = detail.summary) == null ? void 0 : _a.trim()) || ((_b = detail.content) == null ? void 0 : _b.trim()) || "(\u65E0\u5185\u5BB9)";
+          const body = ((_a = detail.content) == null ? void 0 : _a.trim()) || ((_b = detail.summary) == null ? void 0 : _b.trim()) || "(\u65E0\u5185\u5BB9)";
           new DetailModal(this.app, detail.note_title || "(\u65E0\u6807\u9898)", detail.note_path, body, detail.pushed_at).open();
         } catch (error) {
           new import_obsidian2.Notice(`\u8BFB\u53D6\u8BE6\u60C5\u5931\u8D25\uFF1A${formatError(error)}`);
