@@ -1040,7 +1040,12 @@ class RecallReaderView extends ItemView {
 	}
 
 	private applyBottomOverlayOffset(contentEl: HTMLElement): void {
-		const fallback = window.matchMedia("(max-width: 768px)").matches ? 74 : 54;
+		const isMobileWidth = window.matchMedia("(max-width: 768px)").matches;
+		const fallback = isMobileWidth ? 58 : 12;
+		if (!isMobileWidth) {
+			contentEl.style.setProperty("--recall-status-offset", `${fallback}px`);
+			return;
+		}
 		const statusBar = document.querySelector(".status-bar") as HTMLElement | null;
 		const statusHeight = statusBar?.getBoundingClientRect().height ?? 0;
 		const offset = Math.max(fallback, Math.ceil(statusHeight + 12));

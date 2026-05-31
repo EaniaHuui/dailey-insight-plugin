@@ -142,7 +142,7 @@
 
 .obsidian-recall-reader-view {
   --recall-toolbar-height: 52px;
-  --recall-status-offset: 54px;
+  --recall-status-offset: 12px;
   --recall-toolbar-bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--status-bar-scroll-padding, 0px) + var(--recall-status-offset));
   --recall-shell-bottom-space: calc(var(--recall-toolbar-height) + var(--recall-toolbar-bottom) + 14px);
   position: relative;
@@ -472,7 +472,7 @@
 
 @media (max-width: 768px) {
   .obsidian-recall-reader-view {
-    --recall-status-offset: 74px;
+    --recall-status-offset: 58px;
     --recall-toolbar-height: 88px;
   }
 

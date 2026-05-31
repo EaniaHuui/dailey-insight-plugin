@@ -1085,7 +1085,12 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
   }
   applyBottomOverlayOffset(contentEl) {
     var _a;
-    const fallback = window.matchMedia("(max-width: 768px)").matches ? 74 : 54;
+    const isMobileWidth = window.matchMedia("(max-width: 768px)").matches;
+    const fallback = isMobileWidth ? 58 : 12;
+    if (!isMobileWidth) {
+      contentEl.style.setProperty("--recall-status-offset", `${fallback}px`);
+      return;
+    }
     const statusBar = document.querySelector(".status-bar");
     const statusHeight = (_a = statusBar == null ? void 0 : statusBar.getBoundingClientRect().height) != null ? _a : 0;
     const offset = Math.max(fallback, Math.ceil(statusHeight + 12));
