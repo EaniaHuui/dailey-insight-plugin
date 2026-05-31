@@ -1024,11 +1024,16 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     const progressFill = progressBar.createDiv({ cls: "obsidian-recall-progress-fill" });
     const progressPercent = items.length === 0 ? 0 : (this.currentIndex + 1) / items.length * 100;
     progressFill.style.width = `${progressPercent}%`;
+    shell.createDiv({
+      cls: "obsidian-recall-progress-meta",
+      text: `\u8FDB\u5EA6 ${this.currentIndex + 1}/${items.length}`
+    });
     const card = shell.createDiv({ cls: "obsidian-recall-card" });
     const cardTop = card.createDiv({ cls: "obsidian-recall-card-top" });
     const titleWrap = cardTop.createDiv();
     titleWrap.createEl("h3", { text: current.title, cls: "obsidian-recall-card-title" });
-    titleWrap.createDiv({ text: current.path, cls: "obsidian-recall-card-path" });
+    const pathEl = titleWrap.createDiv({ text: current.path, cls: "obsidian-recall-card-path" });
+    pathEl.title = current.path;
     const badgeRow = cardTop.createDiv({ cls: "obsidian-recall-card-badges" });
     badgeRow.createSpan({ text: `${this.currentIndex + 1}/${items.length}`, cls: "obsidian-recall-badge" });
     if (state.revisit) {
