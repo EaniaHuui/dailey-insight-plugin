@@ -939,6 +939,9 @@ class RecallReaderView extends ItemView {
 		const { contentEl } = this;
 		contentEl.empty();
 		contentEl.addClass("obsidian-recall-reader-view");
+		contentEl.style.overflow = "hidden";
+		contentEl.style.height = "100%";
+		contentEl.style.minHeight = "0";
 
 		const items = await this.plugin.getTodayRecallItems();
 		const progress = this.plugin.getTodayProgress(items);
@@ -1084,6 +1087,9 @@ class RecallSidebarView extends ItemView {
 		const { contentEl } = this;
 		contentEl.empty();
 		contentEl.addClass("obsidian-recall-sidebar-view");
+		contentEl.style.overflow = "auto";
+		contentEl.style.height = "100%";
+		contentEl.style.minHeight = "0";
 
 		const items = await this.plugin.getTodayRecallItems();
 		const progress = this.plugin.getTodayProgress(items);
