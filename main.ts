@@ -976,7 +976,7 @@ class RecallReaderView extends ItemView {
 		const progressFill = progressBar.createDiv({ cls: "obsidian-recall-progress-fill" });
 		const progressPercent = items.length === 0 ? 0 : ((this.currentIndex + 1) / items.length) * 100;
 		progressFill.style.width = `${progressPercent}%`;
-		shell.createDiv({
+		header.createDiv({
 			cls: "obsidian-recall-progress-meta",
 			text: `进度 ${this.currentIndex + 1}/${items.length}`
 		});

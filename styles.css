@@ -161,7 +161,10 @@
 }
 
 .obsidian-recall-reader-header {
-  display: block;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .obsidian-recall-eyebrow {
@@ -199,6 +202,7 @@
   color: var(--text-muted);
   text-align: right;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .obsidian-recall-card {
@@ -456,6 +460,10 @@
   .obsidian-recall-reader-header,
   .obsidian-recall-card-top {
     display: grid;
+  }
+
+  .obsidian-recall-progress-meta {
+    text-align: left;
   }
 
   .obsidian-recall-reader-title {
