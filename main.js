@@ -764,16 +764,27 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
     this.statusBar.setText(`Recall\uFF1A${auth} \xB7 ${mode}${suffix}`);
   }
   async openRecallReaderView() {
-    const leaf = this.app.workspace.getLeaf(true);
-    await leaf.setViewState({
-      type: RECALL_MAIN_VIEW,
-      active: true
-    });
+    var _a;
+    const leaves = this.app.workspace.getLeavesOfType(RECALL_MAIN_VIEW);
+    for (const extraLeaf of leaves.slice(1)) {
+      extraLeaf.detach();
+    }
+    const leaf = (_a = leaves[0]) != null ? _a : this.app.workspace.getLeaf(true);
+    if (!leaves[0]) {
+      await leaf.setViewState({
+        type: RECALL_MAIN_VIEW,
+        active: true
+      });
+    }
     this.app.workspace.revealLeaf(leaf);
     await this.refreshRecallViews();
   }
   async openRecallSidebarView(reveal = false) {
-    const existing = this.app.workspace.getLeavesOfType(RECALL_SIDEBAR_VIEW)[0];
+    const leaves = this.app.workspace.getLeavesOfType(RECALL_SIDEBAR_VIEW);
+    for (const extraLeaf of leaves.slice(1)) {
+      extraLeaf.detach();
+    }
+    const existing = leaves[0];
     const leaf = existing != null ? existing : this.app.workspace.getRightLeaf(true);
     if (!leaf) {
       return;
@@ -1009,22 +1020,17 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     const titleBlock = header.createDiv();
     titleBlock.createEl("div", { text: "\u4ECA\u65E5\u56DE\u987E", cls: "obsidian-recall-eyebrow" });
     titleBlock.createEl("h2", { text: today, cls: "obsidian-recall-reader-title" });
-    const metrics = header.createDiv({ cls: "obsidian-recall-reader-metrics" });
-    metrics.createDiv({ text: `\u5DF2\u8BFB ${progress.read} / ${progress.total}` });
-    metrics.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58 ${this.plugin.getFutureInventoryCount(7)} \u6761` });
     const progressBar = shell.createDiv({ cls: "obsidian-recall-progress" });
     const progressFill = progressBar.createDiv({ cls: "obsidian-recall-progress-fill" });
-    progressFill.style.width = `${progress.total === 0 ? 0 : Math.max(8, progress.read / progress.total * 100)}%`;
+    const progressPercent = progress.total === 0 ? 0 : progress.read / progress.total * 100;
+    progressFill.style.width = `${progressPercent}%`;
     const card = shell.createDiv({ cls: "obsidian-recall-card" });
     const cardTop = card.createDiv({ cls: "obsidian-recall-card-top" });
     const titleWrap = cardTop.createDiv();
     titleWrap.createEl("h3", { text: current.title, cls: "obsidian-recall-card-title" });
     titleWrap.createDiv({ text: current.path, cls: "obsidian-recall-card-path" });
     const badgeRow = cardTop.createDiv({ cls: "obsidian-recall-card-badges" });
-    badgeRow.createSpan({
-      text: `\u7B2C ${this.currentIndex + 1} / ${items.length} \u6761`,
-      cls: "obsidian-recall-badge"
-    });
+    badgeRow.createSpan({ text: `${this.currentIndex + 1}/${items.length}`, cls: "obsidian-recall-badge" });
     if (state.revisit) {
       badgeRow.createSpan({ text: "\u5DF2\u52A0\u5165\u518D\u56DE\u987E", cls: "obsidian-recall-badge obsidian-recall-badge-accent" });
     } else if (state.snoozed) {
@@ -1034,6 +1040,11 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     }
     const body = card.createDiv({ cls: "obsidian-recall-card-body markdown-rendered" });
     await import_obsidian2.MarkdownRenderer.render(this.app, current.content, body, current.path, this.plugin);
+    if (progress.read >= progress.total) {
+      const completion = shell.createDiv({ cls: "obsidian-recall-completion" });
+      completion.createDiv({ text: "\u4ECA\u5929\u7684\u56DE\u987E\u5DF2\u7ECF\u5904\u7406\u5B8C\u4E86\u3002", cls: "obsidian-recall-completion-title" });
+      completion.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58 ${this.plugin.getFutureInventoryCount(7)} \u6761` });
+    }
     const footer = shell.createDiv({ cls: "obsidian-recall-toolbar" });
     const prevButton = footer.createEl("button", { text: "\u4E0A\u4E00\u6761" });
     prevButton.disabled = this.currentIndex <= 0;
@@ -1080,11 +1091,6 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     sourceButton.onclick = async () => {
       await this.plugin.revealSourceNote(current.path);
     };
-    if (progress.read >= progress.total) {
-      const completion = shell.createDiv({ cls: "obsidian-recall-completion" });
-      completion.createDiv({ text: "\u4ECA\u5929\u7684\u56DE\u987E\u5DF2\u7ECF\u5904\u7406\u5B8C\u4E86\u3002", cls: "obsidian-recall-completion-title" });
-      completion.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58 ${this.plugin.getFutureInventoryCount(7)} \u6761` });
-    }
   }
 };
 var RecallSidebarView = class extends import_obsidian2.ItemView {

@@ -137,21 +137,24 @@
 .obsidian-recall-reader-view,
 .obsidian-recall-sidebar-view {
   height: 100%;
+  min-height: 0;
 }
 
 .obsidian-recall-reader-shell {
   max-width: 920px;
   margin: 0 auto;
-  padding: 20px 18px 28px;
-  display: grid;
+  padding: 20px 18px 12px;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
+  overflow: hidden;
 }
 
 .obsidian-recall-reader-header {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  align-items: flex-end;
+  display: block;
 }
 
 .obsidian-recall-eyebrow {
@@ -166,14 +169,8 @@
   margin: 0;
   font-size: 28px;
   line-height: 1.2;
-}
-
-.obsidian-recall-reader-metrics {
-  display: grid;
-  gap: 4px;
-  justify-items: end;
-  color: var(--text-muted);
-  font-size: 13px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .obsidian-recall-progress {
@@ -181,6 +178,7 @@
   border-radius: 999px;
   background: var(--background-modifier-border);
   overflow: hidden;
+  flex: 0 0 auto;
 }
 
 .obsidian-recall-progress-fill {
@@ -194,8 +192,12 @@
   background: var(--background-primary);
   border-radius: 10px;
   padding: 18px;
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: 14px;
+  overflow: hidden;
 }
 
 .obsidian-recall-card-top {
@@ -203,12 +205,20 @@
   justify-content: space-between;
   gap: 16px;
   align-items: flex-start;
+  flex: 0 0 auto;
+}
+
+.obsidian-recall-card-top > div:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .obsidian-recall-card-title {
   margin: 0;
   font-size: 22px;
   line-height: 1.28;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .obsidian-recall-card-path {
@@ -220,18 +230,22 @@
 
 .obsidian-recall-card-badges {
   display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 6px;
+  flex-wrap: nowrap;
   justify-content: flex-end;
+  flex: 0 0 auto;
 }
 
 .obsidian-recall-badge {
   border: 1px solid var(--background-modifier-border);
   border-radius: 999px;
-  padding: 4px 8px;
+  padding: 4px 10px;
   font-size: 12px;
   color: var(--text-muted);
   background: var(--background-secondary);
+  white-space: nowrap;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
 }
 
 .obsidian-recall-badge-accent {
@@ -246,6 +260,10 @@
 .obsidian-recall-card-body {
   line-height: 1.7;
   font-size: 15px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .obsidian-recall-card-body h1,
@@ -258,6 +276,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding: 12px 0 2px;
+  background: var(--background-primary);
+  border-top: 1px solid var(--background-modifier-border);
 }
 
 .obsidian-recall-completion {
@@ -266,6 +289,7 @@
   background: var(--background-secondary);
   padding: 14px 16px;
   color: var(--text-muted);
+  flex: 0 0 auto;
 }
 
 .obsidian-recall-completion-title {
@@ -361,7 +385,7 @@
 
 @media (max-width: 768px) {
   .obsidian-recall-reader-shell {
-    padding: 14px 12px 18px;
+    padding: 14px 12px 10px;
   }
 
   .obsidian-recall-reader-header,
@@ -373,10 +397,16 @@
     font-size: 24px;
   }
 
-  .obsidian-recall-reader-metrics,
   .obsidian-recall-card-badges {
     justify-items: start;
     justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .obsidian-recall-badge {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .obsidian-recall-card {

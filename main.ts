@@ -684,17 +684,27 @@ class ObsidianRecallPlugin extends Plugin {
 	}
 
 	async openRecallReaderView(): Promise<void> {
-		const leaf = this.app.workspace.getLeaf(true);
-		await leaf.setViewState({
-			type: RECALL_MAIN_VIEW,
-			active: true
-		});
+		const leaves = this.app.workspace.getLeavesOfType(RECALL_MAIN_VIEW);
+		for (const extraLeaf of leaves.slice(1)) {
+			extraLeaf.detach();
+		}
+		const leaf = leaves[0] ?? this.app.workspace.getLeaf(true);
+		if (!leaves[0]) {
+			await leaf.setViewState({
+				type: RECALL_MAIN_VIEW,
+				active: true
+			});
+		}
 		this.app.workspace.revealLeaf(leaf);
 		await this.refreshRecallViews();
 	}
 
 	async openRecallSidebarView(reveal = false): Promise<void> {
-		const existing = this.app.workspace.getLeavesOfType(RECALL_SIDEBAR_VIEW)[0];
+		const leaves = this.app.workspace.getLeavesOfType(RECALL_SIDEBAR_VIEW);
+		for (const extraLeaf of leaves.slice(1)) {
+			extraLeaf.detach();
+		}
+		const existing = leaves[0];
 		const leaf = existing ?? this.app.workspace.getRightLeaf(true);
 		if (!leaf) {
 			return;
@@ -961,13 +971,11 @@ class RecallReaderView extends ItemView {
 		const titleBlock = header.createDiv();
 		titleBlock.createEl("div", { text: "今日回顾", cls: "obsidian-recall-eyebrow" });
 		titleBlock.createEl("h2", { text: today, cls: "obsidian-recall-reader-title" });
-		const metrics = header.createDiv({ cls: "obsidian-recall-reader-metrics" });
-		metrics.createDiv({ text: `已读 ${progress.read} / ${progress.total}` });
-		metrics.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
 
 		const progressBar = shell.createDiv({ cls: "obsidian-recall-progress" });
 		const progressFill = progressBar.createDiv({ cls: "obsidian-recall-progress-fill" });
-		progressFill.style.width = `${progress.total === 0 ? 0 : Math.max(8, (progress.read / progress.total) * 100)}%`;
+		const progressPercent = progress.total === 0 ? 0 : (progress.read / progress.total) * 100;
+		progressFill.style.width = `${progressPercent}%`;
 
 		const card = shell.createDiv({ cls: "obsidian-recall-card" });
 		const cardTop = card.createDiv({ cls: "obsidian-recall-card-top" });
@@ -975,10 +983,7 @@ class RecallReaderView extends ItemView {
 		titleWrap.createEl("h3", { text: current.title, cls: "obsidian-recall-card-title" });
 		titleWrap.createDiv({ text: current.path, cls: "obsidian-recall-card-path" });
 		const badgeRow = cardTop.createDiv({ cls: "obsidian-recall-card-badges" });
-		badgeRow.createSpan({
-			text: `第 ${this.currentIndex + 1} / ${items.length} 条`,
-			cls: "obsidian-recall-badge"
-		});
+		badgeRow.createSpan({ text: `${this.currentIndex + 1}/${items.length}`, cls: "obsidian-recall-badge" });
 		if (state.revisit) {
 			badgeRow.createSpan({ text: "已加入再回顾", cls: "obsidian-recall-badge obsidian-recall-badge-accent" });
 		} else if (state.snoozed) {
@@ -989,6 +994,12 @@ class RecallReaderView extends ItemView {
 
 		const body = card.createDiv({ cls: "obsidian-recall-card-body markdown-rendered" });
 		await MarkdownRenderer.render(this.app, current.content, body, current.path, this.plugin);
+
+		if (progress.read >= progress.total) {
+			const completion = shell.createDiv({ cls: "obsidian-recall-completion" });
+			completion.createDiv({ text: "今天的回顾已经处理完了。", cls: "obsidian-recall-completion-title" });
+			completion.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
+		}
 
 		const footer = shell.createDiv({ cls: "obsidian-recall-toolbar" });
 		const prevButton = footer.createEl("button", { text: "上一条" });
@@ -1041,12 +1052,6 @@ class RecallReaderView extends ItemView {
 		sourceButton.onclick = async () => {
 			await this.plugin.revealSourceNote(current.path);
 		};
-
-		if (progress.read >= progress.total) {
-			const completion = shell.createDiv({ cls: "obsidian-recall-completion" });
-			completion.createDiv({ text: "今天的回顾已经处理完了。", cls: "obsidian-recall-completion-title" });
-			completion.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
-		}
 	}
 }
 
