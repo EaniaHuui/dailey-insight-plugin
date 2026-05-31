@@ -974,7 +974,7 @@ class RecallReaderView extends ItemView {
 
 		const progressBar = shell.createDiv({ cls: "obsidian-recall-progress" });
 		const progressFill = progressBar.createDiv({ cls: "obsidian-recall-progress-fill" });
-		const progressPercent = progress.total === 0 ? 0 : (progress.read / progress.total) * 100;
+		const progressPercent = items.length === 0 ? 0 : ((this.currentIndex + 1) / items.length) * 100;
 		progressFill.style.width = `${progressPercent}%`;
 
 		const card = shell.createDiv({ cls: "obsidian-recall-card" });
@@ -996,12 +996,12 @@ class RecallReaderView extends ItemView {
 		await MarkdownRenderer.render(this.app, current.content, body, current.path, this.plugin);
 
 		if (progress.read >= progress.total) {
-			const completion = shell.createDiv({ cls: "obsidian-recall-completion" });
+			const completion = card.createDiv({ cls: "obsidian-recall-completion" });
 			completion.createDiv({ text: "今天的回顾已经处理完了。", cls: "obsidian-recall-completion-title" });
 			completion.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
 		}
 
-		const footer = shell.createDiv({ cls: "obsidian-recall-toolbar" });
+		const footer = card.createDiv({ cls: "obsidian-recall-toolbar" });
 		const prevButton = footer.createEl("button", { text: "上一条" });
 		prevButton.disabled = this.currentIndex <= 0;
 		prevButton.onclick = async () => {
