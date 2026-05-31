@@ -141,15 +141,19 @@
 }
 
 .obsidian-recall-reader-view {
-  --recall-bottom-clearance: calc(
-    max(12px, env(safe-area-inset-bottom)) + var(--status-bar-scroll-padding, 0px)
+  --recall-toolbar-height: 52px;
+  --recall-status-fallback: 72px;
+  --recall-toolbar-offset: calc(
+    max(10px, env(safe-area-inset-bottom)) + var(--status-bar-scroll-padding, 0px) + var(--recall-status-fallback)
   );
+  --recall-bottom-clearance: calc(var(--recall-toolbar-height) + var(--recall-toolbar-offset) + 8px);
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  overflow: hidden;
-  padding-bottom: var(--recall-bottom-clearance);
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding-bottom: 0;
   box-sizing: border-box;
 }
 
@@ -157,16 +161,16 @@
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
-  padding: 12px 16px 14px;
-  flex: 1 1 auto;
-  height: 100%;
-  max-height: 100%;
-  min-height: 0;
+  padding: 12px 16px var(--recall-bottom-clearance);
+  flex: 0 0 auto;
+  height: auto;
+  max-height: none;
+  min-height: 100%;
   box-sizing: border-box;
   display: grid;
   grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   gap: 10px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .obsidian-recall-reader-header {
@@ -219,11 +223,11 @@
   background: var(--background-secondary);
   border-radius: 8px;
   padding: 14px;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   align-content: start;
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: clamp(280px, 52vh, 720px);
   gap: 12px;
   overflow: hidden;
   box-shadow: none;
@@ -300,12 +304,12 @@
   font-size: 15px;
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  overflow: visible;
   padding: 2px 2px 2px 0;
   width: 100%;
   max-width: none;
-  scrollbar-width: thin;
-  scrollbar-color: var(--scrollbar-thumb-bg) transparent;
+  scrollbar-width: auto;
+  scrollbar-color: auto;
 }
 
 .obsidian-recall-card-body > * {
@@ -313,7 +317,7 @@
 }
 
 .obsidian-recall-card-body::-webkit-scrollbar {
-  width: 8px;
+  width: 0;
 }
 
 .obsidian-recall-card-body::-webkit-scrollbar-track {
@@ -348,11 +352,14 @@
   gap: 8px;
   flex: 0 0 auto;
   min-height: 0;
-  padding: 8px 0 max(8px, env(safe-area-inset-bottom));
-  margin-bottom: var(--recall-bottom-clearance);
+  padding: 8px 0 0;
+  margin-bottom: 0;
   background: transparent;
   border-top: 1px solid var(--background-modifier-border-hover);
   box-shadow: none;
+  position: sticky;
+  bottom: var(--recall-toolbar-offset);
+  z-index: 20;
 }
 
 .obsidian-recall-toolbar button {
@@ -462,9 +469,14 @@
 }
 
 @media (max-width: 768px) {
+  .obsidian-recall-reader-view {
+    --recall-status-fallback: 92px;
+    --recall-toolbar-height: 92px;
+  }
+
   .obsidian-recall-reader-shell {
     max-width: 100%;
-    padding: 8px 8px max(10px, env(safe-area-inset-bottom));
+    padding: 8px 8px var(--recall-bottom-clearance);
     gap: 8px;
   }
 
@@ -517,8 +529,8 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
     padding-top: 6px;
-    padding-bottom: max(10px, env(safe-area-inset-bottom));
-    margin-bottom: max(12px, env(safe-area-inset-bottom));
+    padding-bottom: 0;
+    margin-bottom: 0;
   }
 
   .obsidian-recall-toolbar button {
