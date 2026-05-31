@@ -140,6 +140,12 @@
   min-height: 0;
 }
 
+.obsidian-recall-reader-view {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .obsidian-recall-reader-shell {
   width: 100%;
   max-width: 820px;
@@ -148,8 +154,8 @@
   flex: 1 1 auto;
   min-height: 0;
   box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   gap: 12px;
   overflow: hidden;
 }
@@ -192,8 +198,9 @@
   background: var(--background-secondary);
   border-radius: 8px;
   padding: 16px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  align-content: start;
   flex: 1 1 auto;
   min-height: 0;
   gap: 12px;
@@ -280,10 +287,10 @@
   flex-wrap: wrap;
   gap: 8px;
   flex: 0 0 auto;
-  margin-top: auto;
   padding: 12px 0 max(4px, env(safe-area-inset-bottom));
   background: var(--background-secondary);
   border-top: 1px solid var(--background-modifier-border);
+  box-shadow: 0 -1px 0 var(--background-modifier-border);
 }
 
 .obsidian-recall-toolbar button {

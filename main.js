@@ -1045,7 +1045,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
       completion.createDiv({ text: "\u4ECA\u5929\u7684\u56DE\u987E\u5DF2\u7ECF\u5904\u7406\u5B8C\u4E86\u3002", cls: "obsidian-recall-completion-title" });
       completion.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58 ${this.plugin.getFutureInventoryCount(7)} \u6761` });
     }
-    const footer = card.createDiv({ cls: "obsidian-recall-toolbar" });
+    const footer = shell.createDiv({ cls: "obsidian-recall-toolbar" });
     const prevButton = footer.createEl("button", { text: "\u4E0A\u4E00\u6761" });
     prevButton.disabled = this.currentIndex <= 0;
     prevButton.onclick = async () => {

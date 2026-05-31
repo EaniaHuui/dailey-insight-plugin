@@ -1001,7 +1001,7 @@ class RecallReaderView extends ItemView {
 			completion.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
 		}
 
-		const footer = card.createDiv({ cls: "obsidian-recall-toolbar" });
+		const footer = shell.createDiv({ cls: "obsidian-recall-toolbar" });
 		const prevButton = footer.createEl("button", { text: "上一条" });
 		prevButton.disabled = this.currentIndex <= 0;
 		prevButton.onclick = async () => {
