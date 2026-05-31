@@ -312,9 +312,9 @@
   gap: 8px;
   flex: 0 0 auto;
   padding: 10px 0 max(4px, env(safe-area-inset-bottom));
-  background: var(--background-secondary);
-  border-top: 1px solid var(--background-modifier-border);
-  box-shadow: 0 -1px 0 var(--background-modifier-border), 0 -8px 16px rgba(0, 0, 0, 0.08);
+  background: transparent;
+  border-top: 1px solid var(--background-modifier-border-hover);
+  box-shadow: none;
 }
 
 .obsidian-recall-toolbar button {
