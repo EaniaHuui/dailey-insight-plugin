@@ -23,6 +23,8 @@ export interface RecallSettings {
 	queueDailyCount: number;
 	pushedHistory: LocalPushHistoryItem[];
 	queuedHistory: LocalPushHistoryItem[];
+	lastAutoOpenDate: string;
+	recallStates: Record<string, RecallItemState>;
 	debugLog: string[];
 	debugLastError: string;
 }
@@ -30,6 +32,13 @@ export interface RecallSettings {
 export interface LocalPushHistoryItem {
 	path: string;
 	pushedAt: string;
+}
+
+export interface RecallItemState {
+	read: boolean;
+	snoozed: boolean;
+	revisit: boolean;
+	updatedAt: string;
 }
 
 const DEFAULT_SETTINGS: RecallSettings = {
@@ -57,19 +66,22 @@ const DEFAULT_SETTINGS: RecallSettings = {
 	queueDailyCount: 1,
 	pushedHistory: [],
 	queuedHistory: [],
+	lastAutoOpenDate: "",
+	recallStates: {},
 	debugLog: [],
 	debugLastError: ""
 };
 
 export function normalizeSettings(settings: Partial<RecallSettings>): RecallSettings {
-  return {
-	    ...DEFAULT_SETTINGS,
-	    ...settings,
-	    cuboxTags: settings.cuboxTags ?? DEFAULT_SETTINGS.cuboxTags,
-	    excludedFolders: settings.excludedFolders ?? DEFAULT_SETTINGS.excludedFolders,
-	    pushedHistory: settings.pushedHistory ?? DEFAULT_SETTINGS.pushedHistory,
-	    queuedHistory: settings.queuedHistory ?? DEFAULT_SETTINGS.queuedHistory,
-	    debugLog: settings.debugLog ?? DEFAULT_SETTINGS.debugLog,
-	    debugLastError: settings.debugLastError ?? DEFAULT_SETTINGS.debugLastError
-	  };
+	return {
+		...DEFAULT_SETTINGS,
+		...settings,
+		cuboxTags: settings.cuboxTags ?? DEFAULT_SETTINGS.cuboxTags,
+		excludedFolders: settings.excludedFolders ?? DEFAULT_SETTINGS.excludedFolders,
+		pushedHistory: settings.pushedHistory ?? DEFAULT_SETTINGS.pushedHistory,
+		queuedHistory: settings.queuedHistory ?? DEFAULT_SETTINGS.queuedHistory,
+		recallStates: settings.recallStates ?? DEFAULT_SETTINGS.recallStates,
+		debugLog: settings.debugLog ?? DEFAULT_SETTINGS.debugLog,
+		debugLastError: settings.debugLastError ?? DEFAULT_SETTINGS.debugLastError
+	};
 }

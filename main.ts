@@ -1,22 +1,39 @@
-import { App, Modal, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { App, ItemView, MarkdownRenderer, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf } from "obsidian";
 import { APIClient, type PushHistoryItem, type QueueRecallItem } from "./api";
 import { sha256Hex } from "./crypto";
-import { normalizeSettings, type LocalPushHistoryItem, type RecallSettings } from "./settings";
+import { normalizeSettings, type LocalPushHistoryItem, type RecallItemState, type RecallSettings } from "./settings";
 import { type LocalNote } from "./sync";
+
+const RECALL_MAIN_VIEW = "obsidian-recall-main-view";
+const RECALL_SIDEBAR_VIEW = "obsidian-recall-sidebar-view";
+
+type TodayRecallItem = {
+	path: string;
+	title: string;
+	content: string;
+	slotIndex: number;
+	status: "queued" | "done";
+	sourceDate: string;
+	file?: TFile | null;
+};
 
 class ObsidianRecallPlugin extends Plugin {
 	settings: RecallSettings = normalizeSettings({});
 	private statusBar?: HTMLElement;
+	private activeRecallPath = "";
 
 	async onload(): Promise<void> {
 		await this.loadSettings();
 		await this.recordDebug("onload:start");
 
+		this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
+		this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
+
 		this.statusBar = this.addStatusBarItem();
 		this.updateStatusBar();
 
 		this.addRibbonIcon("history", "Obsidian 每日回顾", async () => {
-			await this.syncNow();
+			await this.openRecallReaderView();
 		});
 
 		this.addCommand({
@@ -26,6 +43,22 @@ class ObsidianRecallPlugin extends Plugin {
 				this.settings.token = "";
 				await this.saveSettings();
 				new Notice("Token 已清空");
+			}
+		});
+
+		this.addCommand({
+			id: "obsidian-recall-open-today",
+			name: "打开今日回顾",
+			callback: async () => {
+				await this.openRecallReaderView();
+			}
+		});
+
+		this.addCommand({
+			id: "obsidian-recall-open-sidebar",
+			name: "打开今日回顾侧边栏",
+			callback: async () => {
+				await this.openRecallSidebarView(true);
 			}
 		});
 
@@ -71,6 +104,8 @@ class ObsidianRecallPlugin extends Plugin {
 
 	onunload(): void {
 		this.statusBar?.remove();
+		this.app.workspace.detachLeavesOfType(RECALL_MAIN_VIEW);
+		this.app.workspace.detachLeavesOfType(RECALL_SIDEBAR_VIEW);
 	}
 
 	async loadSettings(): Promise<void> {
@@ -309,6 +344,7 @@ class ObsidianRecallPlugin extends Plugin {
 				}
 				await this.recordDebug("startup:sync");
 				await this.syncNow();
+				await this.maybeAutoOpenTodayRecall();
 			} else {
 				await this.recordDebug("startup:no-token");
 			}
@@ -647,6 +683,203 @@ class ObsidianRecallPlugin extends Plugin {
 		this.statusBar.setText(`Recall：${auth} · ${mode}${suffix}`);
 	}
 
+	async openRecallReaderView(): Promise<void> {
+		const leaf = this.app.workspace.getLeaf(true);
+		await leaf.setViewState({
+			type: RECALL_MAIN_VIEW,
+			active: true
+		});
+		this.app.workspace.revealLeaf(leaf);
+		await this.refreshRecallViews();
+	}
+
+	async openRecallSidebarView(reveal = false): Promise<void> {
+		const existing = this.app.workspace.getLeavesOfType(RECALL_SIDEBAR_VIEW)[0];
+		const leaf = existing ?? this.app.workspace.getRightLeaf(true);
+		if (!leaf) {
+			return;
+		}
+		await leaf.setViewState({
+			type: RECALL_SIDEBAR_VIEW,
+			active: reveal
+		});
+		if (reveal) {
+			this.app.workspace.revealLeaf(leaf);
+		}
+		await this.refreshRecallViews();
+	}
+
+	async refreshRecallViews(): Promise<void> {
+		for (const leaf of this.app.workspace.getLeavesOfType(RECALL_MAIN_VIEW)) {
+			const view = leaf.view;
+			if (view instanceof RecallReaderView) {
+				await view.render();
+			}
+		}
+		for (const leaf of this.app.workspace.getLeavesOfType(RECALL_SIDEBAR_VIEW)) {
+			const view = leaf.view;
+			if (view instanceof RecallSidebarView) {
+				await view.render();
+			}
+		}
+	}
+
+	setActiveRecallPath(path: string): void {
+		this.activeRecallPath = path;
+	}
+
+	consumeActiveRecallPath(): string {
+		const path = this.activeRecallPath;
+		this.activeRecallPath = "";
+		return path;
+	}
+
+	async getTodayRecallItems(): Promise<TodayRecallItem[]> {
+		const today = this.getLocalDateString();
+		const queuedToday = this.settings.queuedHistory.filter((item) => item.pushedAt.startsWith(today));
+		const queuedIndex = new Map<string, number>();
+		queuedToday.forEach((item, index) => {
+			if (!queuedIndex.has(item.path)) {
+				queuedIndex.set(item.path, index + 1);
+			}
+		});
+
+		const pushedToday = this.settings.pushedHistory.filter((item) => item.pushedAt.startsWith(today));
+		const pushedIndex = new Map<string, number>();
+		pushedToday
+			.slice()
+			.reverse()
+			.forEach((item, index) => {
+				if (!pushedIndex.has(item.path)) {
+					pushedIndex.set(item.path, index + 1);
+				}
+			});
+
+		const mergedPaths = new Set<string>([
+			...Array.from(queuedIndex.keys()),
+			...Array.from(pushedIndex.keys())
+		]);
+
+		const items: TodayRecallItem[] = [];
+		for (const path of mergedPaths) {
+			const file = this.app.vault.getAbstractFileByPath(path);
+			if (!(file instanceof TFile)) {
+				continue;
+			}
+			const content = await this.app.vault.cachedRead(file);
+			items.push({
+				path,
+				title: file.basename,
+				content,
+				slotIndex: queuedIndex.get(path) ?? pushedIndex.get(path) ?? 999,
+				status: queuedIndex.has(path) ? "queued" : "done",
+				sourceDate: today,
+				file
+			});
+		}
+
+		items.sort((a, b) => {
+			if (a.slotIndex !== b.slotIndex) {
+				return a.slotIndex - b.slotIndex;
+			}
+			return a.title.localeCompare(b.title, "zh-CN");
+		});
+		return items;
+	}
+
+	getFutureInventoryCount(days = 7): number {
+		const start = this.startOfLocalDay(new Date());
+		start.setDate(start.getDate() + 1);
+		const end = new Date(start);
+		end.setDate(end.getDate() + days);
+		return this.settings.queuedHistory.filter((item) => {
+			const date = new Date(item.pushedAt);
+			return date >= start && date < end;
+		}).length;
+	}
+
+	getRecallState(date: string, path: string): RecallItemState {
+		return (
+			this.settings.recallStates[this.recallStateKey(date, path)] ?? {
+				read: false,
+				snoozed: false,
+				revisit: false,
+				updatedAt: ""
+			}
+		);
+	}
+
+	async updateRecallState(date: string, path: string, patch: Partial<RecallItemState>): Promise<void> {
+		const key = this.recallStateKey(date, path);
+		const current = this.getRecallState(date, path);
+		this.settings.recallStates[key] = {
+			...current,
+			...patch,
+			updatedAt: new Date().toISOString()
+		};
+		await this.saveSettings();
+		await this.refreshRecallViews();
+	}
+
+	getTodayProgress(items: TodayRecallItem[]): { total: number; read: number; remaining: number } {
+		const today = this.getLocalDateString();
+		const read = items.filter((item) => this.getRecallState(today, item.path).read).length;
+		return {
+			total: items.length,
+			read,
+			remaining: Math.max(0, items.length - read)
+		};
+	}
+
+	findNextUnreadIndex(items: TodayRecallItem[]): number {
+		const today = this.getLocalDateString();
+		return items.findIndex((item) => !this.getRecallState(today, item.path).read);
+	}
+
+	async revealSourceNote(path: string): Promise<void> {
+		const file = this.app.vault.getAbstractFileByPath(path);
+		if (!(file instanceof TFile)) {
+			new Notice("原笔记不存在或已被移动");
+			return;
+		}
+		const leaf = this.app.workspace.getLeaf(true);
+		await leaf.openFile(file);
+		this.app.workspace.revealLeaf(leaf);
+	}
+
+	async maybeAutoOpenTodayRecall(): Promise<void> {
+		const today = this.getLocalDateString();
+		if (this.settings.lastAutoOpenDate === today) {
+			return;
+		}
+		const items = await this.getTodayRecallItems();
+		if (items.length === 0) {
+			return;
+		}
+		this.settings.lastAutoOpenDate = today;
+		await this.saveSettings();
+		await this.openRecallSidebarView(false);
+		await this.openRecallReaderView();
+	}
+
+	private recallStateKey(date: string, path: string): string {
+		return `${date}::${path}`;
+	}
+
+	private startOfLocalDay(value: Date): Date {
+		const copy = new Date(value);
+		copy.setHours(0, 0, 0, 0);
+		return copy;
+	}
+
+	private getLocalDateString(): string {
+		const value = this.startOfLocalDay(new Date());
+		const year = value.getFullYear();
+		const month = String(value.getMonth() + 1).padStart(2, "0");
+		const day = String(value.getDate()).padStart(2, "0");
+		return `${year}-${month}-${day}`;
+	}
+
 	private applyQueueMetrics(status: { daily_push_count: number; items: Array<{ scheduled_date: string }> }): void {
 		const items = status.items ?? [];
 		const uniqueDays = new Set(items.map((item) => item.scheduled_date).filter(Boolean));
@@ -667,6 +900,252 @@ class ObsidianRecallPlugin extends Plugin {
 		}
 		return !localValue.trim();
 	}
+}
+
+class RecallReaderView extends ItemView {
+	private currentIndex = 0;
+
+	constructor(leaf: WorkspaceLeaf, private readonly plugin: ObsidianRecallPlugin) {
+		super(leaf);
+	}
+
+	getViewType(): string {
+		return RECALL_MAIN_VIEW;
+	}
+
+	getDisplayText(): string {
+		return "今日回顾";
+	}
+
+	getIcon(): string {
+		return "history";
+	}
+
+	async onOpen(): Promise<void> {
+		await this.render();
+	}
+
+	async render(): Promise<void> {
+		const { contentEl } = this;
+		contentEl.empty();
+		contentEl.addClass("obsidian-recall-reader-view");
+
+		const items = await this.plugin.getTodayRecallItems();
+		const progress = this.plugin.getTodayProgress(items);
+		const firstUnread = this.plugin.findNextUnreadIndex(items);
+		if (items.length === 0) {
+			renderRecallEmptyState(contentEl, this.plugin, "今天还没有可阅读的回顾内容。");
+			return;
+		}
+		const focusedPath = this.plugin.consumeActiveRecallPath();
+		const focusedIndex = focusedPath ? items.findIndex((item) => item.path === focusedPath) : -1;
+		if (focusedIndex >= 0) {
+			this.currentIndex = focusedIndex;
+		}
+		if (firstUnread >= 0 && (this.currentIndex < 0 || this.currentIndex >= items.length)) {
+			this.currentIndex = firstUnread;
+		}
+		if (this.currentIndex >= items.length) {
+			this.currentIndex = items.length - 1;
+		}
+		if (this.currentIndex < 0) {
+			this.currentIndex = 0;
+		}
+
+		const today = formatDateLabel(new Date());
+		const current = items[this.currentIndex];
+		const state = this.plugin.getRecallState(current.sourceDate, current.path);
+
+		const shell = contentEl.createDiv({ cls: "obsidian-recall-reader-shell" });
+		const header = shell.createDiv({ cls: "obsidian-recall-reader-header" });
+		const titleBlock = header.createDiv();
+		titleBlock.createEl("div", { text: "今日回顾", cls: "obsidian-recall-eyebrow" });
+		titleBlock.createEl("h2", { text: today, cls: "obsidian-recall-reader-title" });
+		const metrics = header.createDiv({ cls: "obsidian-recall-reader-metrics" });
+		metrics.createDiv({ text: `已读 ${progress.read} / ${progress.total}` });
+		metrics.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
+
+		const progressBar = shell.createDiv({ cls: "obsidian-recall-progress" });
+		const progressFill = progressBar.createDiv({ cls: "obsidian-recall-progress-fill" });
+		progressFill.style.width = `${progress.total === 0 ? 0 : Math.max(8, (progress.read / progress.total) * 100)}%`;
+
+		const card = shell.createDiv({ cls: "obsidian-recall-card" });
+		const cardTop = card.createDiv({ cls: "obsidian-recall-card-top" });
+		const titleWrap = cardTop.createDiv();
+		titleWrap.createEl("h3", { text: current.title, cls: "obsidian-recall-card-title" });
+		titleWrap.createDiv({ text: current.path, cls: "obsidian-recall-card-path" });
+		const badgeRow = cardTop.createDiv({ cls: "obsidian-recall-card-badges" });
+		badgeRow.createSpan({
+			text: `第 ${this.currentIndex + 1} / ${items.length} 条`,
+			cls: "obsidian-recall-badge"
+		});
+		if (state.revisit) {
+			badgeRow.createSpan({ text: "已加入再回顾", cls: "obsidian-recall-badge obsidian-recall-badge-accent" });
+		} else if (state.snoozed) {
+			badgeRow.createSpan({ text: "稍后再看", cls: "obsidian-recall-badge" });
+		} else if (state.read) {
+			badgeRow.createSpan({ text: "已读", cls: "obsidian-recall-badge obsidian-recall-badge-muted" });
+		}
+
+		const body = card.createDiv({ cls: "obsidian-recall-card-body markdown-rendered" });
+		await MarkdownRenderer.render(this.app, current.content, body, current.path, this.plugin);
+
+		const footer = shell.createDiv({ cls: "obsidian-recall-toolbar" });
+		const prevButton = footer.createEl("button", { text: "上一条" });
+		prevButton.disabled = this.currentIndex <= 0;
+		prevButton.onclick = async () => {
+			this.currentIndex = Math.max(0, this.currentIndex - 1);
+			await this.render();
+		};
+
+		const nextButton = footer.createEl("button", { text: "下一条" });
+		nextButton.disabled = this.currentIndex >= items.length - 1;
+		nextButton.onclick = async () => {
+			this.currentIndex = Math.min(items.length - 1, this.currentIndex + 1);
+			await this.render();
+		};
+
+		const readButton = footer.createEl("button", { text: state.read ? "已读完成" : "标记已读" });
+		readButton.addClass("mod-cta");
+		readButton.onclick = async () => {
+			await this.plugin.updateRecallState(current.sourceDate, current.path, {
+				read: true,
+				snoozed: false
+			});
+			const refreshed = await this.plugin.getTodayRecallItems();
+			const nextUnread = this.plugin.findNextUnreadIndex(refreshed);
+			if (nextUnread >= 0) {
+				this.currentIndex = nextUnread;
+			}
+			await this.render();
+		};
+
+		const snoozeButton = footer.createEl("button", { text: state.snoozed ? "已稍后" : "稍后再看" });
+		snoozeButton.onclick = async () => {
+			await this.plugin.updateRecallState(current.sourceDate, current.path, {
+				snoozed: !state.snoozed,
+				read: false
+			});
+			await this.render();
+		};
+
+		const revisitButton = footer.createEl("button", { text: state.revisit ? "已加入再回顾" : "加入再回顾" });
+		revisitButton.onclick = async () => {
+			await this.plugin.updateRecallState(current.sourceDate, current.path, {
+				revisit: !state.revisit
+			});
+			await this.render();
+		};
+
+		const sourceButton = footer.createEl("button", { text: "打开原笔记" });
+		sourceButton.onclick = async () => {
+			await this.plugin.revealSourceNote(current.path);
+		};
+
+		if (progress.read >= progress.total) {
+			const completion = shell.createDiv({ cls: "obsidian-recall-completion" });
+			completion.createDiv({ text: "今天的回顾已经处理完了。", cls: "obsidian-recall-completion-title" });
+			completion.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
+		}
+	}
+}
+
+class RecallSidebarView extends ItemView {
+	constructor(leaf: WorkspaceLeaf, private readonly plugin: ObsidianRecallPlugin) {
+		super(leaf);
+	}
+
+	getViewType(): string {
+		return RECALL_SIDEBAR_VIEW;
+	}
+
+	getDisplayText(): string {
+		return "回顾队列";
+	}
+
+	getIcon(): string {
+		return "panel-right-open";
+	}
+
+	async onOpen(): Promise<void> {
+		await this.render();
+	}
+
+	async render(): Promise<void> {
+		const { contentEl } = this;
+		contentEl.empty();
+		contentEl.addClass("obsidian-recall-sidebar-view");
+
+		const items = await this.plugin.getTodayRecallItems();
+		const progress = this.plugin.getTodayProgress(items);
+
+		const wrap = contentEl.createDiv({ cls: "obsidian-recall-sidebar-shell" });
+		wrap.createEl("h3", { text: "每日回顾", cls: "obsidian-recall-sidebar-title" });
+
+		const stats = wrap.createDiv({ cls: "obsidian-recall-sidebar-stats" });
+		stats.createDiv({ text: `今日队列：${progress.total} 条` });
+		stats.createDiv({ text: `已读：${progress.read} 条` });
+		stats.createDiv({ text: `剩余：${progress.remaining} 条` });
+		stats.createDiv({ text: `未来 7 天库存：${this.plugin.getFutureInventoryCount(7)} 条` });
+
+		const actionRow = wrap.createDiv({ cls: "obsidian-recall-sidebar-actions" });
+		const openButton = actionRow.createEl("button", { text: "打开今日回顾" });
+		openButton.addClass("mod-cta");
+		openButton.onclick = async () => {
+			await this.plugin.openRecallReaderView();
+		};
+
+		const refreshButton = actionRow.createEl("button", { text: "刷新队列" });
+		refreshButton.onclick = async () => {
+			await this.plugin.refreshRecallViews();
+		};
+
+		if (items.length === 0) {
+			wrap.createDiv({ text: "今天还没有可阅读的回顾内容。", cls: "obsidian-recall-sidebar-empty" });
+			return;
+		}
+
+		const list = wrap.createDiv({ cls: "obsidian-recall-sidebar-list" });
+		for (const item of items) {
+			const state = this.plugin.getRecallState(item.sourceDate, item.path);
+			const row = list.createDiv({ cls: "obsidian-recall-sidebar-item" });
+			row.tabIndex = 0;
+			const top = row.createDiv({ cls: "obsidian-recall-sidebar-item-top" });
+			top.createSpan({ text: item.title, cls: "obsidian-recall-sidebar-item-title" });
+			top.createSpan({
+				text: state.read ? "已读" : state.snoozed ? "稍后" : "未读",
+				cls: "obsidian-recall-sidebar-item-state"
+			});
+			row.createDiv({ text: item.path, cls: "obsidian-recall-sidebar-item-path" });
+			const openItem = async (): Promise<void> => {
+				this.plugin.setActiveRecallPath(item.path);
+				await this.plugin.openRecallReaderView();
+			};
+			row.onclick = () => {
+				void openItem();
+			};
+			row.onkeydown = (event) => {
+				if (event.key === "Enter" || event.key === " ") {
+					event.preventDefault();
+					void openItem();
+				}
+			};
+		}
+	}
+}
+
+function renderRecallEmptyState(containerEl: HTMLElement, plugin: ObsidianRecallPlugin, message: string): void {
+	const shell = containerEl.createDiv({ cls: "obsidian-recall-reader-shell" });
+	const card = shell.createDiv({ cls: "obsidian-recall-card obsidian-recall-card-empty" });
+	card.createEl("h3", { text: "今日回顾", cls: "obsidian-recall-card-title" });
+	card.createDiv({ text: message, cls: "obsidian-recall-empty-text" });
+	const actions = card.createDiv({ cls: "obsidian-recall-toolbar" });
+	const syncButton = actions.createEl("button", { text: "立即补齐队列" });
+	syncButton.addClass("mod-cta");
+	syncButton.onclick = async () => {
+		await plugin.syncNow();
+		await plugin.refreshRecallViews();
+	};
 }
 
 class RecallSettingTab extends PluginSettingTab {
@@ -1159,6 +1638,14 @@ function formatDateTime(value: string): string {
 		return value;
 	}
 	return parsed.toLocaleString();
+}
+
+function formatDateLabel(value: Date): string {
+	return value.toLocaleDateString("zh-CN", {
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit"
+	});
 }
 
 export = ObsidianRecallPlugin;

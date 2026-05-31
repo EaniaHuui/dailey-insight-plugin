@@ -133,3 +133,253 @@
   border-radius: 8px;
   padding: 10px;
 }
+
+.obsidian-recall-reader-view,
+.obsidian-recall-sidebar-view {
+  height: 100%;
+}
+
+.obsidian-recall-reader-shell {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 20px 18px 28px;
+  display: grid;
+  gap: 14px;
+}
+
+.obsidian-recall-reader-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.obsidian-recall-eyebrow {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.obsidian-recall-reader-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.obsidian-recall-reader-metrics {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.obsidian-recall-progress {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--background-modifier-border);
+  overflow: hidden;
+}
+
+.obsidian-recall-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--interactive-accent);
+}
+
+.obsidian-recall-card {
+  border: 1px solid var(--background-modifier-border);
+  background: var(--background-primary);
+  border-radius: 10px;
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.obsidian-recall-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.obsidian-recall-card-title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.28;
+}
+
+.obsidian-recall-card-path {
+  margin-top: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+.obsidian-recall-card-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.obsidian-recall-badge {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--background-secondary);
+}
+
+.obsidian-recall-badge-accent {
+  color: var(--interactive-accent);
+  border-color: color-mix(in srgb, var(--interactive-accent) 40%, transparent);
+}
+
+.obsidian-recall-badge-muted {
+  color: var(--text-faint);
+}
+
+.obsidian-recall-card-body {
+  line-height: 1.7;
+  font-size: 15px;
+}
+
+.obsidian-recall-card-body h1,
+.obsidian-recall-card-body h2,
+.obsidian-recall-card-body h3 {
+  margin-top: 1.1em;
+}
+
+.obsidian-recall-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.obsidian-recall-completion {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  background: var(--background-secondary);
+  padding: 14px 16px;
+  color: var(--text-muted);
+}
+
+.obsidian-recall-completion-title {
+  font-weight: 600;
+  color: var(--text-normal);
+  margin-bottom: 4px;
+}
+
+.obsidian-recall-card-empty {
+  min-height: 280px;
+  align-content: center;
+}
+
+.obsidian-recall-empty-text {
+  color: var(--text-muted);
+}
+
+.obsidian-recall-sidebar-shell {
+  padding: 16px 14px 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.obsidian-recall-sidebar-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.obsidian-recall-sidebar-stats {
+  display: grid;
+  gap: 6px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 10px;
+  background: var(--background-secondary);
+  padding: 12px;
+  font-size: 13px;
+}
+
+.obsidian-recall-sidebar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.obsidian-recall-sidebar-list {
+  display: grid;
+  gap: 8px;
+}
+
+.obsidian-recall-sidebar-item {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px;
+  background: var(--background-primary);
+  cursor: pointer;
+  transition: border-color 120ms ease, transform 120ms ease, background 120ms ease;
+}
+
+.obsidian-recall-sidebar-item:hover,
+.obsidian-recall-sidebar-item:focus-visible {
+  border-color: var(--interactive-accent);
+  background: var(--background-secondary);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.obsidian-recall-sidebar-item-top {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.obsidian-recall-sidebar-item-title {
+  font-size: 13px;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+.obsidian-recall-sidebar-item-state {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.obsidian-recall-sidebar-item-path,
+.obsidian-recall-sidebar-empty {
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+@media (max-width: 768px) {
+  .obsidian-recall-reader-shell {
+    padding: 14px 12px 18px;
+  }
+
+  .obsidian-recall-reader-header,
+  .obsidian-recall-card-top {
+    display: grid;
+  }
+
+  .obsidian-recall-reader-title {
+    font-size: 24px;
+  }
+
+  .obsidian-recall-reader-metrics,
+  .obsidian-recall-card-badges {
+    justify-items: start;
+    justify-content: flex-start;
+  }
+
+  .obsidian-recall-card {
+    padding: 14px;
+  }
+}
