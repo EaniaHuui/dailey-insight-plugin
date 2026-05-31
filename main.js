@@ -1,0 +1,1125 @@
+"use strict";
+
+// main.ts
+var import_obsidian2 = require("obsidian");
+
+// api.ts
+var import_obsidian = require("obsidian");
+var APIClient = class {
+  constructor(options) {
+    this.options = options;
+  }
+  async health() {
+    const response = await (0, import_obsidian.requestUrl)({
+      url: this.url("/healthz"),
+      method: "GET"
+    });
+    return response.status === 200;
+  }
+  async login(email, password, deviceName) {
+    return this.request("POST", "/api/v1/auth/login", {
+      email,
+      password,
+      device_name: deviceName
+    });
+  }
+  async bootstrapAnonymous(clientID, deviceName) {
+    return this.request("POST", "/api/v1/auth/anonymous", {
+      client_id: clientID,
+      device_name: deviceName
+    });
+  }
+  async logout() {
+    await this.request("POST", "/api/v1/auth/logout");
+  }
+  async getNoteHashes() {
+    return this.request("GET", "/api/v1/notes/hashes");
+  }
+  async syncNotes(notes, batchIndex, totalBatches) {
+    return this.request("POST", "/api/v1/notes/sync", {
+      notes: notes.map((note) => ({
+        path: note.path,
+        title: note.title,
+        content: note.content,
+        content_hash: note.contentHash,
+        note_updated_at: note.noteUpdatedAt
+      })),
+      batch_index: batchIndex,
+      total_batches: totalBatches
+    });
+  }
+  async markDeleted(paths) {
+    if (paths.length === 0) {
+      return;
+    }
+    await this.request("POST", "/api/v1/notes/deleted", { paths });
+  }
+  async getUserSettings() {
+    return this.request("GET", "/api/v1/user/settings");
+  }
+  async updateUserSettings(payload) {
+    return this.request("PUT", "/api/v1/user/settings", payload);
+  }
+  async getPushHistory(page = 1, limit = 20) {
+    const query = `?page=${page}&limit=${limit}`;
+    return this.request("GET", `/api/v1/push/history${query}`);
+  }
+  async getPushHistoryDetail(id) {
+    return this.request("GET", `/api/v1/push/history/${encodeURIComponent(id)}`);
+  }
+  async queueRecalls(items) {
+    return this.request("POST", "/api/v1/recalls/queue", { items });
+  }
+  async getQueueStatus(days = 7) {
+    return this.request("GET", `/api/v1/recalls/queue/status?days=${days}`);
+  }
+  async getUserRSS() {
+    return this.request("GET", "/api/v1/user/rss");
+  }
+  async resetUserRSS() {
+    return this.request("POST", "/api/v1/user/rss/reset", {});
+  }
+  async request(method, path, body) {
+    const response = await (0, import_obsidian.requestUrl)({
+      url: this.url(path),
+      method,
+      headers: this.headers(body !== void 0),
+      body: body !== void 0 ? JSON.stringify(body) : void 0
+    });
+    if (response.status >= 400) {
+      let message = `Request failed with status ${response.status}`;
+      try {
+        const data = JSON.parse(response.text);
+        if (typeof (data == null ? void 0 : data.message) === "string" && data.message) {
+          message = data.message;
+        }
+      } catch (e) {
+      }
+      throw new Error(message);
+    }
+    if (!response.text) {
+      return void 0;
+    }
+    return JSON.parse(response.text);
+  }
+  headers(withJSON) {
+    const headers = {};
+    if (withJSON) {
+      headers["Content-Type"] = "application/json";
+    }
+    if (this.options.token) {
+      headers.Authorization = `Bearer ${this.options.token}`;
+    }
+    return headers;
+  }
+  url(path) {
+    const base = this.options.serverUrl.replace(/\/+$/, "");
+    return `${base}${path}`;
+  }
+};
+
+// crypto.ts
+async function sha256Hex(input) {
+  const bytes = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((value) => value.toString(16).padStart(2, "0")).join("");
+}
+
+// settings.ts
+var DEFAULT_SETTINGS = {
+  serverUrl: "",
+  clientId: "",
+  token: "",
+  pushTime: "08:00",
+  timezone: "Asia/Shanghai",
+  dailyPushCount: 1,
+  queueWindowDays: 7,
+  rssUrl: "",
+  enableRSS: true,
+  enableCubox: false,
+  cuboxApiUrl: "",
+  cuboxFolder: "",
+  cuboxTags: [],
+  syncMode: "local",
+  excludedFolders: [],
+  minNoteLength: 50,
+  lastSyncAt: "",
+  lastSyncCount: 0,
+  queueCoveredDays: 0,
+  queueLastDate: "",
+  queueItemCount: 0,
+  queueDailyCount: 1,
+  pushedHistory: [],
+  queuedHistory: [],
+  debugLog: [],
+  debugLastError: ""
+};
+function normalizeSettings(settings) {
+  var _a, _b, _c, _d, _e, _f;
+  return {
+    ...DEFAULT_SETTINGS,
+    ...settings,
+    cuboxTags: (_a = settings.cuboxTags) != null ? _a : DEFAULT_SETTINGS.cuboxTags,
+    excludedFolders: (_b = settings.excludedFolders) != null ? _b : DEFAULT_SETTINGS.excludedFolders,
+    pushedHistory: (_c = settings.pushedHistory) != null ? _c : DEFAULT_SETTINGS.pushedHistory,
+    queuedHistory: (_d = settings.queuedHistory) != null ? _d : DEFAULT_SETTINGS.queuedHistory,
+    debugLog: (_e = settings.debugLog) != null ? _e : DEFAULT_SETTINGS.debugLog,
+    debugLastError: (_f = settings.debugLastError) != null ? _f : DEFAULT_SETTINGS.debugLastError
+  };
+}
+
+// main.ts
+var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
+  constructor() {
+    super(...arguments);
+    this.settings = normalizeSettings({});
+  }
+  async onload() {
+    await this.loadSettings();
+    await this.recordDebug("onload:start");
+    this.statusBar = this.addStatusBarItem();
+    this.updateStatusBar();
+    this.addRibbonIcon("history", "Obsidian \u6BCF\u65E5\u56DE\u987E", async () => {
+      await this.syncNow();
+    });
+    this.addCommand({
+      id: "obsidian-recall-clear-token",
+      name: "\u6E05\u7A7A Obsidian \u6BCF\u65E5\u56DE\u987E Token",
+      callback: async () => {
+        this.settings.token = "";
+        await this.saveSettings();
+        new import_obsidian2.Notice("Token \u5DF2\u6E05\u7A7A");
+      }
+    });
+    this.addCommand({
+      id: "obsidian-recall-sync-now",
+      name: "\u7ACB\u5373\u540C\u6B65\u7B14\u8BB0",
+      callback: async () => {
+        await this.syncNow();
+      }
+    });
+    this.addCommand({
+      id: "obsidian-recall-test-connection",
+      name: "\u6D4B\u8BD5\u670D\u52A1\u7AEF\u8FDE\u63A5",
+      callback: async () => {
+        await this.testConnection();
+      }
+    });
+    this.addCommand({
+      id: "obsidian-recall-logout",
+      name: "\u9000\u51FA\u5F53\u524D\u4F1A\u8BDD",
+      callback: async () => {
+        await this.logout();
+      }
+    });
+    this.addCommand({
+      id: "obsidian-recall-push-history",
+      name: "\u67E5\u770B\u63A8\u9001\u5386\u53F2",
+      callback: async () => {
+        await this.viewPushHistory();
+      }
+    });
+    this.addSettingTab(new RecallSettingTab(this.app, this));
+    await this.recordDebug("onload:ready");
+    this.app.workspace.onLayoutReady(() => {
+      void this.runStartupFlow();
+    });
+  }
+  onunload() {
+    var _a;
+    (_a = this.statusBar) == null ? void 0 : _a.remove();
+  }
+  async loadSettings() {
+    this.settings = normalizeSettings(await this.loadData());
+  }
+  async saveSettings() {
+    await this.saveData(this.settings);
+    this.updateStatusBar();
+  }
+  async logout() {
+    if (!this.settings.token) {
+      new import_obsidian2.Notice("\u5F53\u524D\u672A\u767B\u5F55");
+      return;
+    }
+    try {
+      await this.client().logout();
+    } catch (e) {
+    }
+    this.settings.token = "";
+    await this.saveSettings();
+    new import_obsidian2.Notice("\u5DF2\u9000\u51FA\u767B\u5F55");
+  }
+  async testConnection() {
+    try {
+      const healthy = await this.client().health();
+      new import_obsidian2.Notice(healthy ? "\u670D\u52A1\u7AEF\u8FDE\u63A5\u6B63\u5E38" : "\u670D\u52A1\u7AEF\u8FD4\u56DE\u4E86\u5F02\u5E38\u54CD\u5E94");
+    } catch (error) {
+      new import_obsidian2.Notice(`\u8FDE\u63A5\u5931\u8D25\uFF1A${formatError(error)}`);
+    }
+  }
+  async saveRemoteSettings() {
+    var _a, _b, _c;
+    if (!this.settings.token) {
+      new import_obsidian2.Notice("\u8BF7\u5148\u5B8C\u6210\u521D\u59CB\u5316\u6216\u914D\u7F6E Token\uFF0C\u518D\u4FDD\u5B58\u8BBE\u7F6E");
+      return;
+    }
+    try {
+      const response = await this.client().updateUserSettings({
+        push_time: this.settings.pushTime,
+        timezone: this.settings.timezone,
+        enable_rss: this.settings.enableRSS,
+        enable_cubox: this.settings.enableCubox,
+        cubox_api_url: this.settings.cuboxApiUrl,
+        cubox_folder: this.settings.cuboxFolder,
+        cubox_tags: this.settings.cuboxTags,
+        sync_mode: "local",
+        daily_push_count: this.settings.dailyPushCount,
+        enable_summary: false,
+        summary_prompt: "",
+        excluded_folders: this.settings.excludedFolders,
+        min_note_length: this.settings.minNoteLength
+      });
+      this.settings.pushTime = response.push_time;
+      this.settings.timezone = response.timezone;
+      this.settings.enableRSS = (_a = response.enable_rss) != null ? _a : this.settings.enableRSS;
+      this.settings.enableCubox = (_b = response.enable_cubox) != null ? _b : this.settings.enableCubox;
+      this.settings.cuboxFolder = response.cubox_folder || this.settings.cuboxFolder;
+      this.settings.cuboxTags = (_c = response.cubox_tags) != null ? _c : this.settings.cuboxTags;
+      if (!this.settings.enableRSS) {
+        this.settings.rssUrl = "";
+      }
+      if (this.shouldReplaceSecret(this.settings.cuboxApiUrl, response.cubox_api_url)) {
+        this.settings.cuboxApiUrl = response.cubox_api_url;
+      }
+      this.settings.syncMode = "local";
+      this.settings.dailyPushCount = response.daily_push_count || this.settings.dailyPushCount;
+      this.settings.excludedFolders = response.excluded_folders;
+      this.settings.minNoteLength = response.min_note_length;
+      await this.saveSettings();
+      new import_obsidian2.Notice("\u8BBE\u7F6E\u5DF2\u4FDD\u5B58\u5230\u670D\u52A1\u7AEF");
+    } catch (error) {
+      new import_obsidian2.Notice(`\u4FDD\u5B58\u8BBE\u7F6E\u5931\u8D25\uFF1A${formatError(error)}`);
+    }
+  }
+  async refreshRemoteSettings() {
+    if (!this.settings.token) {
+      new import_obsidian2.Notice("\u8BF7\u5148\u5B8C\u6210\u521D\u59CB\u5316\u6216\u914D\u7F6E Token\uFF0C\u518D\u8BFB\u53D6\u670D\u52A1\u7AEF\u8BBE\u7F6E");
+      return;
+    }
+    try {
+      await this.pullRemoteSettings();
+      await this.saveSettings();
+      new import_obsidian2.Notice("\u5DF2\u4ECE\u670D\u52A1\u7AEF\u8BFB\u53D6\u6700\u65B0\u8BBE\u7F6E");
+    } catch (error) {
+      new import_obsidian2.Notice(`\u8BFB\u53D6\u670D\u52A1\u7AEF\u8BBE\u7F6E\u5931\u8D25\uFF1A${formatError(error)}`);
+    }
+  }
+  async refreshUserRSS() {
+    if (!this.settings.token) {
+      new import_obsidian2.Notice("\u8BF7\u5148\u5B8C\u6210\u521D\u59CB\u5316\u6216\u914D\u7F6E Token\uFF0C\u518D\u83B7\u53D6 RSS \u5730\u5740");
+      return;
+    }
+    if (!this.settings.enableRSS) {
+      new import_obsidian2.Notice("\u8BF7\u5148\u5F00\u542F RSS \u63A8\u9001");
+      return;
+    }
+    try {
+      const response = await this.client().getUserRSS();
+      this.settings.rssUrl = response.rss_url || "";
+      await this.saveSettings();
+      new import_obsidian2.Notice("RSS \u5730\u5740\u5DF2\u66F4\u65B0");
+    } catch (error) {
+      new import_obsidian2.Notice(`\u8BFB\u53D6 RSS \u5730\u5740\u5931\u8D25\uFF1A${formatError(error)}`);
+    }
+  }
+  async resetUserRSS() {
+    if (!this.settings.token) {
+      new import_obsidian2.Notice("\u8BF7\u5148\u5B8C\u6210\u521D\u59CB\u5316\u6216\u914D\u7F6E Token\uFF0C\u518D\u91CD\u7F6E RSS \u5730\u5740");
+      return;
+    }
+    if (!this.settings.enableRSS) {
+      new import_obsidian2.Notice("\u8BF7\u5148\u5F00\u542F RSS \u63A8\u9001");
+      return;
+    }
+    try {
+      const response = await this.client().resetUserRSS();
+      this.settings.rssUrl = response.rss_url || "";
+      await this.saveSettings();
+      new import_obsidian2.Notice("RSS \u5730\u5740\u5DF2\u91CD\u7F6E");
+    } catch (error) {
+      new import_obsidian2.Notice(`\u91CD\u7F6E RSS \u5730\u5740\u5931\u8D25\uFF1A${formatError(error)}`);
+    }
+  }
+  async viewPushHistory() {
+    if (!this.settings.token) {
+      new import_obsidian2.Notice("\u8BF7\u5148\u5B8C\u6210\u521D\u59CB\u5316\u6216\u914D\u7F6E Token\uFF0C\u518D\u67E5\u770B\u63A8\u9001\u5386\u53F2");
+      return;
+    }
+    try {
+      const history = await this.client().getPushHistory(1, 20);
+      const modal = new PushHistoryModal(this.app, this.client(), history.items);
+      modal.open();
+    } catch (error) {
+      new import_obsidian2.Notice(`\u8BFB\u53D6\u63A8\u9001\u5386\u53F2\u5931\u8D25\uFF1A${formatError(error)}`);
+    }
+  }
+  async syncNow() {
+    if (!this.settings.token) {
+      await this.recordDebug("sync:missing-token");
+      new import_obsidian2.Notice("\u8BF7\u5148\u5B8C\u6210\u521D\u59CB\u5316\u6216\u914D\u7F6E Token\uFF0C\u518D\u540C\u6B65\u7B14\u8BB0");
+      return;
+    }
+    try {
+      await this.runLocalSyncMode();
+    } catch (error) {
+      await this.recordDebug(`sync:error:${formatError(error)}`, true);
+      new import_obsidian2.Notice(`\u540C\u6B65\u5931\u8D25\uFF1A${formatError(error)}`);
+    }
+  }
+  async runLocalSyncMode() {
+    await this.recordDebug("sync:local:start");
+    const queueDays = Math.max(1, Math.min(30, this.settings.queueWindowDays || 7));
+    this.settings.queueWindowDays = queueDays;
+    new import_obsidian2.Notice(`\u5F00\u59CB\u8865\u9F50\u672A\u6765 ${queueDays} \u5929\u56DE\u987E\u961F\u5217`);
+    const localNotes = await this.collectLocalNotes();
+    await this.recordDebug(`sync:local:collected:${localNotes.length}`);
+    if (localNotes.length === 0) {
+      new import_obsidian2.Notice("\u6CA1\u6709\u627E\u5230\u7B26\u5408\u6761\u4EF6\u7684\u7B14\u8BB0");
+      return;
+    }
+    await this.pushCurrentSettingsToServer();
+    const queueStatus = await this.client().getQueueStatus(queueDays);
+    const dailyCount = Math.max(1, Math.min(20, queueStatus.daily_push_count || this.settings.dailyPushCount || 1));
+    this.settings.dailyPushCount = dailyCount;
+    this.applyQueueMetrics(queueStatus);
+    const plans = this.buildQueuePlans(localNotes, dailyCount, queueStatus.items, queueDays);
+    if (plans.length === 0) {
+      this.settings.lastSyncAt = (/* @__PURE__ */ new Date()).toISOString();
+      this.settings.lastSyncCount = 0;
+      await this.saveSettings();
+      new import_obsidian2.Notice(`\u672A\u6765 ${queueDays} \u5929\u961F\u5217\u5DF2\u6EE1\uFF0C\u65E0\u9700\u8865\u5145`);
+      return;
+    }
+    const response = await this.client().queueRecalls(plans);
+    const afterQueueStatus = await this.client().getQueueStatus(queueDays);
+    this.applyQueueMetrics(afterQueueStatus);
+    if (response.queued > 0) {
+      this.settings.queuedHistory = this.normalizePushedHistory([
+        ...this.settings.queuedHistory,
+        ...plans.map((item) => ({
+          path: item.path,
+          pushedAt: `${item.scheduled_date}T00:00:00.000Z`
+        }))
+      ]);
+    }
+    if (response.queued === 0 && response.skipped > 0) {
+      new import_obsidian2.Notice("\u6CA1\u6709\u53EF\u7528\u4E8E\u672C\u5730\u62BD\u53D6\u7684\u7B14\u8BB0");
+    }
+    this.settings.lastSyncAt = (/* @__PURE__ */ new Date()).toISOString();
+    this.settings.lastSyncCount = response.queued;
+    this.settings.debugLastError = "";
+    await this.saveSettings();
+    await this.recordDebug(`sync:local:done:queued=${response.queued}:skipped=${response.skipped}`);
+    new import_obsidian2.Notice(`\u961F\u5217\u8865\u5145\u5B8C\u6210\uFF1A\u65B0\u589E ${response.queued} \u6761\uFF0C\u8DF3\u8FC7 ${response.skipped} \u6761`);
+  }
+  async runStartupFlow() {
+    try {
+      await this.recordDebug("startup:begin");
+      if (!this.settings.serverUrl) {
+        await this.recordDebug("startup:no-server");
+        return;
+      }
+      if (!this.settings.token) {
+        await this.recordDebug("startup:bootstrap-anonymous");
+        await this.bootstrapAnonymousSession();
+      }
+      if (this.settings.token) {
+        await this.recordDebug("startup:pull-settings");
+        try {
+          await this.pullRemoteSettings();
+          await this.saveSettings();
+        } catch (error) {
+          await this.recordDebug(`startup:pull-settings-skip:${formatError(error)}`, true);
+        }
+        await this.recordDebug("startup:sync");
+        await this.syncNow();
+      } else {
+        await this.recordDebug("startup:no-token");
+      }
+    } catch (error) {
+      await this.recordDebug(`startup:error:${formatError(error)}`, true);
+      console.error("Obsidian \u6BCF\u65E5\u56DE\u987E startup flow failed", error);
+    }
+  }
+  ensureClientID() {
+    var _a;
+    const current = (_a = this.settings.clientId) == null ? void 0 : _a.trim();
+    if (current) {
+      return current;
+    }
+    const generated = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `client-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+    this.settings.clientId = generated;
+    return generated;
+  }
+  async bootstrapAnonymousSession() {
+    if (!this.settings.serverUrl) {
+      return;
+    }
+    const clientID = this.ensureClientID();
+    const response = await this.client().bootstrapAnonymous(clientID, `Obsidian ${this.app.vault.getName()}`);
+    this.settings.token = response.token;
+    await this.saveSettings();
+  }
+  buildPairCode() {
+    const payload = {
+      v: 1,
+      server_url: this.settings.serverUrl.trim(),
+      token: this.settings.token.trim()
+    };
+    return `orc1.${encodeBase64URL(JSON.stringify(payload))}`;
+  }
+  async showPairCodeExportModal() {
+    const token = this.settings.token.trim();
+    if (!token) {
+      new import_obsidian2.Notice("\u5F53\u524D\u6CA1\u6709\u53EF\u5BFC\u51FA\u7684 Token");
+      return;
+    }
+    new PairCodeExportModal(this.app, this.buildPairCode()).open();
+  }
+  async showPairCodeImportModal() {
+    new PairCodeImportModal(this.app, async (code) => {
+      await this.importPairCode(code);
+    }).open();
+  }
+  async importPairCode(rawCode) {
+    var _a, _b, _c, _d;
+    const code = rawCode.trim();
+    if (!code) {
+      throw new Error("\u914D\u5BF9\u7801\u4E3A\u7A7A");
+    }
+    let serverURL = "";
+    let token = "";
+    if (code.startsWith("orc1.")) {
+      const decoded = decodeBase64URL(code.slice("orc1.".length));
+      const payload = JSON.parse(decoded);
+      serverURL = String((_a = payload.server_url) != null ? _a : "").trim();
+      token = String((_b = payload.token) != null ? _b : "").trim();
+    } else if (code.startsWith("{")) {
+      const payload = JSON.parse(code);
+      serverURL = String((_c = payload.server_url) != null ? _c : "").trim();
+      token = String((_d = payload.token) != null ? _d : "").trim();
+    } else {
+      token = code;
+    }
+    if (!token) {
+      throw new Error("\u914D\u5BF9\u7801\u91CC\u6CA1\u6709 Token");
+    }
+    if (serverURL) {
+      this.settings.serverUrl = serverURL;
+    }
+    this.settings.token = token;
+    await this.saveSettings();
+    await this.pullRemoteSettings();
+    await this.saveSettings();
+  }
+  async pullRemoteSettings() {
+    var _a, _b, _c, _d;
+    if (!this.settings.token) {
+      return;
+    }
+    try {
+      const remote = await this.client().getUserSettings();
+      this.settings.pushTime = remote.push_time || this.settings.pushTime;
+      this.settings.timezone = remote.timezone || this.settings.timezone;
+      this.settings.enableRSS = (_a = remote.enable_rss) != null ? _a : this.settings.enableRSS;
+      this.settings.enableCubox = (_b = remote.enable_cubox) != null ? _b : this.settings.enableCubox;
+      this.settings.cuboxFolder = remote.cubox_folder || this.settings.cuboxFolder;
+      this.settings.cuboxTags = (_c = remote.cubox_tags) != null ? _c : this.settings.cuboxTags;
+      this.settings.syncMode = "local";
+      this.settings.dailyPushCount = remote.daily_push_count || this.settings.dailyPushCount;
+      this.settings.excludedFolders = (_d = remote.excluded_folders) != null ? _d : this.settings.excludedFolders;
+      this.settings.minNoteLength = remote.min_note_length || this.settings.minNoteLength;
+      if (this.shouldReplaceSecret(this.settings.cuboxApiUrl, remote.cubox_api_url)) {
+        this.settings.cuboxApiUrl = remote.cubox_api_url;
+      }
+      if (this.settings.token) {
+        if (this.settings.enableRSS) {
+          const rss = await this.client().getUserRSS();
+          this.settings.rssUrl = rss.rss_url || this.settings.rssUrl;
+        } else {
+          this.settings.rssUrl = "";
+        }
+        const queueDays = Math.max(1, Math.min(30, this.settings.queueWindowDays || 7));
+        const queueStatus = await this.client().getQueueStatus(queueDays);
+        this.applyQueueMetrics(queueStatus);
+      }
+    } catch (error) {
+      await this.recordDebug(`settings:pull-error:${formatError(error)}`, true);
+      throw error;
+    }
+  }
+  async recordDebug(message, isError = false) {
+    const entry = `${(/* @__PURE__ */ new Date()).toISOString()} ${message}`;
+    this.settings.debugLog = [...this.settings.debugLog.slice(-19), entry];
+    if (isError) {
+      this.settings.debugLastError = entry;
+    }
+    await this.saveData(this.settings);
+  }
+  async collectLocalNotes() {
+    const files = this.app.vault.getMarkdownFiles();
+    const notes = [];
+    for (const file of files) {
+      if (this.shouldSkip(file.path)) {
+        continue;
+      }
+      const content = await this.app.vault.cachedRead(file);
+      if (content.trim().length < this.settings.minNoteLength) {
+        continue;
+      }
+      notes.push({
+        path: file.path,
+        title: file.basename,
+        content,
+        contentHash: await sha256Hex(content),
+        noteUpdatedAt: new Date(file.stat.mtime).toISOString()
+      });
+    }
+    return notes;
+  }
+  async pushCurrentSettingsToServer() {
+    var _a, _b, _c;
+    const response = await this.client().updateUserSettings({
+      push_time: this.settings.pushTime,
+      timezone: this.settings.timezone,
+      enable_rss: this.settings.enableRSS,
+      enable_cubox: this.settings.enableCubox,
+      cubox_api_url: this.settings.cuboxApiUrl,
+      cubox_folder: this.settings.cuboxFolder,
+      cubox_tags: this.settings.cuboxTags,
+      sync_mode: "local",
+      daily_push_count: this.settings.dailyPushCount,
+      enable_summary: false,
+      summary_prompt: "",
+      excluded_folders: this.settings.excludedFolders,
+      min_note_length: this.settings.minNoteLength
+    });
+    this.settings.pushTime = response.push_time;
+    this.settings.timezone = response.timezone;
+    this.settings.enableRSS = (_a = response.enable_rss) != null ? _a : this.settings.enableRSS;
+    this.settings.enableCubox = (_b = response.enable_cubox) != null ? _b : this.settings.enableCubox;
+    this.settings.cuboxFolder = response.cubox_folder || this.settings.cuboxFolder;
+    this.settings.cuboxTags = (_c = response.cubox_tags) != null ? _c : this.settings.cuboxTags;
+    if (!this.settings.enableRSS) {
+      this.settings.rssUrl = "";
+    }
+    if (this.shouldReplaceSecret(this.settings.cuboxApiUrl, response.cubox_api_url)) {
+      this.settings.cuboxApiUrl = response.cubox_api_url;
+    }
+    this.settings.syncMode = "local";
+    this.settings.dailyPushCount = response.daily_push_count || this.settings.dailyPushCount;
+    this.settings.excludedFolders = response.excluded_folders;
+    this.settings.minNoteLength = response.min_note_length;
+  }
+  pickLocalRecallNote(notes) {
+    const history = this.normalizePushedHistory([...this.settings.pushedHistory, ...this.settings.queuedHistory]);
+    const pick = (days) => {
+      return notes.filter((note) => !this.wasPushedRecently(note.path, history, days));
+    };
+    const ninetyDayPool = pick(90);
+    if (ninetyDayPool.length > 0) {
+      return this.randomNote(ninetyDayPool);
+    }
+    const thirtyDayPool = pick(30);
+    if (thirtyDayPool.length > 0) {
+      return this.randomNote(thirtyDayPool);
+    }
+    return this.randomNote(notes);
+  }
+  buildQueuePlans(notes, dailyCount, existing, queueDays) {
+    const plan = [];
+    const existingKey = new Set(existing.map((item) => `${item.scheduled_date}#${item.slot_index}`));
+    const recentHistory = this.normalizePushedHistory([...this.settings.pushedHistory, ...this.settings.queuedHistory]);
+    const candidatePool = notes.filter((note) => !this.wasPushedRecently(note.path, recentHistory, 90));
+    const fallbackPool = candidatePool.length > 0 ? candidatePool : notes;
+    let rollingPool = [...fallbackPool];
+    for (let day = 0; day < queueDays; day++) {
+      const date = /* @__PURE__ */ new Date();
+      date.setHours(0, 0, 0, 0);
+      date.setDate(date.getDate() + day);
+      const yyyyMmDd = date.toISOString().slice(0, 10);
+      for (let slot = 1; slot <= dailyCount; slot++) {
+        const key = `${yyyyMmDd}#${slot}`;
+        if (existingKey.has(key)) {
+          continue;
+        }
+        if (rollingPool.length === 0) {
+          rollingPool = [...fallbackPool];
+        }
+        const picked = this.randomNote(rollingPool);
+        if (!picked) {
+          continue;
+        }
+        rollingPool = rollingPool.filter((item) => item.path !== picked.path);
+        plan.push({
+          path: picked.path,
+          title: picked.title,
+          content: picked.content,
+          content_hash: picked.contentHash,
+          note_updated_at: picked.noteUpdatedAt,
+          scheduled_date: yyyyMmDd,
+          slot_index: slot
+        });
+      }
+    }
+    return plan;
+  }
+  randomNote(notes) {
+    var _a;
+    if (notes.length === 0) {
+      return null;
+    }
+    const index = Math.floor(Math.random() * notes.length);
+    return (_a = notes[index]) != null ? _a : null;
+  }
+  wasPushedRecently(path, history, days) {
+    const cutoff = Date.now() - days * 24 * 60 * 60 * 1e3;
+    return history.some((item) => {
+      if (item.path !== path) {
+        return false;
+      }
+      const pushedAt = new Date(item.pushedAt).getTime();
+      return Number.isFinite(pushedAt) && pushedAt >= cutoff;
+    });
+  }
+  normalizePushedHistory(history) {
+    const cutoff = Date.now() - 365 * 24 * 60 * 60 * 1e3;
+    const latestByPath = /* @__PURE__ */ new Map();
+    for (const item of history) {
+      const path = item.path.trim();
+      const pushedAtMs = new Date(item.pushedAt).getTime();
+      if (!path || !Number.isFinite(pushedAtMs) || pushedAtMs < cutoff) {
+        continue;
+      }
+      const existing = latestByPath.get(path);
+      if (!existing || new Date(existing.pushedAt).getTime() < pushedAtMs) {
+        latestByPath.set(path, { path, pushedAt: new Date(pushedAtMs).toISOString() });
+      }
+    }
+    return Array.from(latestByPath.values()).sort((a, b) => b.pushedAt.localeCompare(a.pushedAt));
+  }
+  shouldSkip(path) {
+    var _a;
+    const segments = path.split("/");
+    const fileName = (_a = segments[segments.length - 1]) != null ? _a : path;
+    if (fileName.startsWith("_")) {
+      return true;
+    }
+    const lowerPath = path.toLowerCase();
+    for (const folder of this.settings.excludedFolders) {
+      const normalized = folder.trim().toLowerCase().replace(/^\/+|\/+$/g, "");
+      if (!normalized) {
+        continue;
+      }
+      if (lowerPath === normalized || lowerPath.startsWith(`${normalized}/`)) {
+        return true;
+      }
+    }
+    return false;
+  }
+  client() {
+    return new APIClient({
+      serverUrl: this.settings.serverUrl,
+      token: this.settings.token
+    });
+  }
+  updateStatusBar() {
+    if (!this.statusBar) {
+      return;
+    }
+    const auth = this.settings.token ? "\u5DF2\u767B\u5F55" : "\u672A\u767B\u5F55";
+    const mode = "\u672C\u5730";
+    const suffix = this.settings.lastSyncCount > 0 ? " \xB7 \u5DF2\u8865\u961F\u5217" : "";
+    this.statusBar.setText(`Recall\uFF1A${auth} \xB7 ${mode}${suffix}`);
+  }
+  applyQueueMetrics(status) {
+    var _a;
+    const items = (_a = status.items) != null ? _a : [];
+    const uniqueDays = new Set(items.map((item) => item.scheduled_date).filter(Boolean));
+    const sortedDays = Array.from(uniqueDays).sort((a, b) => a.localeCompare(b));
+    this.settings.queueCoveredDays = sortedDays.length;
+    this.settings.queueLastDate = sortedDays.length > 0 ? sortedDays[sortedDays.length - 1] : "";
+    this.settings.queueItemCount = items.length;
+    this.settings.queueDailyCount = Math.max(1, Math.min(20, status.daily_push_count || this.settings.dailyPushCount || 1));
+  }
+  shouldReplaceSecret(localValue, remoteValue) {
+    const remoteTrimmed = remoteValue.trim();
+    if (!remoteTrimmed) {
+      return false;
+    }
+    if (remoteTrimmed.includes("*")) {
+      return false;
+    }
+    return !localValue.trim();
+  }
+};
+var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
+  constructor(app, plugin) {
+    super(app, plugin);
+    this.plugin = plugin;
+  }
+  display() {
+    const { containerEl } = this;
+    containerEl.empty();
+    containerEl.addClass("obsidian-recall-settings");
+    containerEl.createEl("h2", { text: "Obsidian \u6BCF\u65E5\u56DE\u987E \u8BBE\u7F6E" });
+    containerEl.createEl("p", {
+      text: "\u7528\u4E8E\u4ECE\u672C\u5730\u62BD\u53D6\u7B14\u8BB0\u5E76\u9884\u63D0\u4EA4\u5230\u670D\u52A1\u7AEF\uFF0C\u6309\u8BA1\u5212\u751F\u6210\u6BCF\u65E5\u56DE\u987E\uFF08RSS \u53EF\u8BA2\u9605\uFF09\u3002"
+    });
+    const statusLines = [
+      this.plugin.settings.token ? "\u767B\u5F55\u72B6\u6001\uFF1A\u5DF2\u767B\u5F55" : "\u767B\u5F55\u72B6\u6001\uFF1A\u672A\u767B\u5F55",
+      `\u540C\u6B65\u6A21\u5F0F\uFF1A\u672C\u5730\u62BD\u53D6\uFF08${Math.max(1, Math.min(30, this.plugin.settings.queueWindowDays || 7))}\u5929\u6EDA\u52A8\u9884\u63D0\u4EA4\uFF09`,
+      `\u63A8\u9001\u901A\u9053\uFF1ARSS ${this.plugin.settings.enableRSS ? "\u5F00\u542F" : "\u5173\u95ED"} \xB7 Cubox ${this.plugin.settings.enableCubox ? "\u5F00\u542F" : "\u5173\u95ED"}`,
+      this.plugin.settings.lastSyncAt ? `\u4E0A\u6B21\u540C\u6B65\uFF1A${new Date(this.plugin.settings.lastSyncAt).toLocaleString()}` : "\u4E0A\u6B21\u540C\u6B65\uFF1A\u6682\u65E0",
+      `\u6700\u8FD1\u8865\u5145\u6761\u76EE\uFF1A${this.plugin.settings.lastSyncCount} \u6761`,
+      `\u5E93\u5B58\u8986\u76D6\uFF1A${this.plugin.settings.queueCoveredDays} \u5929 \xB7 \u6BCF\u5929 ${this.plugin.settings.queueDailyCount} \u6761`,
+      this.plugin.settings.queueLastDate ? `\u5DF2\u6392\u961F\u5230\uFF1A${this.plugin.settings.queueLastDate}` : "\u5DF2\u6392\u961F\u5230\uFF1A\u6682\u65E0",
+      `\u961F\u5217\u603B\u6761\u76EE\uFF1A${this.plugin.settings.queueItemCount}`,
+      this.plugin.settings.debugLastError ? `\u6700\u8FD1\u9519\u8BEF\uFF1A${this.plugin.settings.debugLastError}` : "\u6700\u8FD1\u9519\u8BEF\uFF1A\u65E0"
+    ];
+    containerEl.createEl("div", {
+      cls: "obsidian-recall-settings-summary",
+      text: statusLines.join("\n")
+    });
+    new import_obsidian2.Setting(containerEl).setName("\u670D\u52A1\u5668\u5730\u5740").setDesc("Obsidian \u6BCF\u65E5\u56DE\u987E \u670D\u52A1\u7AEF\u5730\u5740").addText(
+      (text) => text.setPlaceholder("https://your-recall-server.example").setValue(this.plugin.settings.serverUrl).onChange(async (value) => {
+        this.plugin.settings.serverUrl = value.trim();
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("\u8BBF\u95EE Token").setDesc("\u9996\u6B21\u5B89\u88C5\u4F1A\u81EA\u52A8\u751F\u6210\u3002\u53EF\u624B\u52A8\u4FEE\u6539\uFF0C\u7528\u4E8E\u591A\u8BBE\u5907\u5171\u7528\u540C\u4E00\u7528\u6237\u8EAB\u4EFD\u3002").addText((text) => {
+      text.inputEl.setAttribute("type", "text");
+      text.setPlaceholder("token").setValue(this.plugin.settings.token).onChange(async (value) => {
+        this.plugin.settings.token = value.trim();
+        await this.plugin.saveSettings();
+      });
+    }).addButton(
+      (button) => button.setIcon("copy").setTooltip("\u590D\u5236 Token").onClick(async () => {
+        const token = this.plugin.settings.token.trim();
+        if (!token) {
+          new import_obsidian2.Notice("\u5F53\u524D\u6CA1\u6709\u53EF\u590D\u5236\u7684 Token");
+          return;
+        }
+        await navigator.clipboard.writeText(token);
+        new import_obsidian2.Notice("Token \u5DF2\u590D\u5236");
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("\u542F\u7528 RSS \u63A8\u9001").setDesc("\u5F00\u542F\u540E\u4F1A\u5199\u5165 RSS \u6761\u76EE\u5E76\u53EF\u5728\u5BA2\u6237\u7AEF\u8BA2\u9605").addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.enableRSS).onChange(async (value) => {
+        this.plugin.settings.enableRSS = value;
+        if (!value) {
+          this.plugin.settings.rssUrl = "";
+        }
+        await this.plugin.saveSettings();
+        this.display();
+      })
+    );
+    if (this.plugin.settings.enableRSS) {
+      new import_obsidian2.Setting(containerEl).setName("RSS \u5730\u5740").setDesc("\u6BCF\u4E2A\u7528\u6237\u72EC\u7ACB\u7684\u79C1\u6709\u8BA2\u9605\u5730\u5740\uFF08\u53EA\u8BFB\uFF09").addText((text) => {
+        text.setPlaceholder("\uFF08\u5C1A\u672A\u83B7\u53D6 RSS \u5730\u5740\uFF09").setValue(this.plugin.settings.rssUrl.trim()).setDisabled(true);
+        text.inputEl.addClass("obsidian-recall-rss-input");
+      }).addButton(
+        (button) => button.setButtonText("\u83B7\u53D6").onClick(async () => {
+          await this.plugin.refreshUserRSS();
+          this.display();
+        })
+      ).addButton(
+        (button) => button.setIcon("copy").setTooltip("\u590D\u5236 RSS \u5730\u5740").onClick(async () => {
+          const value = this.plugin.settings.rssUrl.trim();
+          if (!value) {
+            new import_obsidian2.Notice("\u8BF7\u5148\u83B7\u53D6 RSS \u5730\u5740");
+            return;
+          }
+          await navigator.clipboard.writeText(value);
+          new import_obsidian2.Notice("RSS \u5730\u5740\u5DF2\u590D\u5236");
+        })
+      );
+    }
+    new import_obsidian2.Setting(containerEl).setName("\u542F\u7528 Cubox \u63A8\u9001").setDesc("\u5F00\u542F\u540E\u4F1A\u628A\u56DE\u987E\u5185\u5BB9\u901A\u8FC7 Cubox API \u5199\u5165\u4F60\u7684 Cubox").addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.enableCubox).onChange(async (value) => {
+        this.plugin.settings.enableCubox = value;
+        await this.plugin.saveSettings();
+        this.display();
+      })
+    );
+    if (this.plugin.settings.enableCubox) {
+      new import_obsidian2.Setting(containerEl).setName("Cubox API \u5730\u5740").setDesc("\u5728 Cubox \u6269\u5C55\u4E2D\u5FC3\u548C\u81EA\u52A8\u5316\u4E2D\u590D\u5236\u7684 API \u94FE\u63A5").addText((text) => {
+        text.inputEl.setAttribute("type", "password");
+        text.setPlaceholder("https://...").setValue(this.plugin.settings.cuboxApiUrl).onChange(async (value) => {
+          this.plugin.settings.cuboxApiUrl = value.trim();
+          await this.plugin.saveSettings();
+        });
+      });
+      new import_obsidian2.Setting(containerEl).setName("Cubox \u6536\u85CF\u5939").setDesc("\u53EF\u9009\uFF0C\u4E0D\u586B\u5219\u8FDB\u5165\u6536\u96C6\u7BB1").addText(
+        (text) => text.setValue(this.plugin.settings.cuboxFolder).onChange(async (value) => {
+          this.plugin.settings.cuboxFolder = value.trim();
+          await this.plugin.saveSettings();
+        })
+      );
+      new import_obsidian2.Setting(containerEl).setName("Cubox \u6807\u7B7E").setDesc("\u53EF\u9009\uFF0C\u9017\u53F7\u5206\u9694\uFF0C\u4F8B\u5982 Obsidian, \u56DE\u987E").addText(
+        (text) => text.setValue(this.plugin.settings.cuboxTags.join(", ")).onChange(async (value) => {
+          this.plugin.settings.cuboxTags = value.split(",").map((item) => item.trim()).filter(Boolean);
+          await this.plugin.saveSettings();
+        })
+      );
+    }
+    new import_obsidian2.Setting(containerEl).setName("\u63A8\u9001\u65F6\u95F4").setDesc("\u6BCF\u5929\u63A8\u9001\u65F6\u95F4\uFF0C\u683C\u5F0F\u4E3A HH:MM").addText((text) => {
+      text.inputEl.type = "time";
+      text.setValue(this.plugin.settings.pushTime || "08:00").onChange(async (value) => {
+        this.plugin.settings.pushTime = value.trim() || "08:00";
+        await this.plugin.saveSettings();
+      });
+    });
+    new import_obsidian2.Setting(containerEl).setName("\u65F6\u533A").setDesc("IANA \u65F6\u533A\uFF0C\u4F8B\u5982 Asia/Shanghai").addText(
+      (text) => text.setValue(this.plugin.settings.timezone).onChange(async (value) => {
+        this.plugin.settings.timezone = value.trim() || "Asia/Shanghai";
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("\u9884\u63D0\u4EA4\u5929\u6570").setDesc(
+      "\u6BCF\u6B21\u6253\u5F00 Obsidian \u65F6\uFF0C\u4F1A\u628A\u672A\u6765 N \u5929\u7684\u56DE\u987E\u5E93\u5B58\u8865\u9F50\u5230\u670D\u52A1\u7AEF\uFF081-30 \u5929\uFF09\u3002\u5373\u4F7F\u4F60\u540E\u7EED\u51E0\u5929\u4E0D\u6253\u5F00 Obsidian\uFF0C\u670D\u52A1\u5668\u4E5F\u53EF\u6309\u8BA1\u5212\u6301\u7EED\u63A8\u9001\u3002"
+    ).addButton((button) => {
+      button.buttonEl.addClass("obsidian-recall-step-btn");
+      return button.setButtonText("-").onClick(async () => {
+        this.plugin.settings.queueWindowDays = Math.max(1, (this.plugin.settings.queueWindowDays || 7) - 1);
+        await this.plugin.saveSettings();
+        this.display();
+      });
+    }).addText((text) => {
+      text.inputEl.addClass("obsidian-recall-step-input");
+      return text.setValue(String(this.plugin.settings.queueWindowDays || 7)).onChange(async (value) => {
+        const parsed = Number.parseInt(value, 10);
+        this.plugin.settings.queueWindowDays = Number.isFinite(parsed) ? Math.max(1, Math.min(30, parsed)) : 7;
+        await this.plugin.saveSettings();
+      });
+    }).addButton((button) => {
+      button.buttonEl.addClass("obsidian-recall-step-btn");
+      return button.setButtonText("+").onClick(async () => {
+        this.plugin.settings.queueWindowDays = Math.min(30, (this.plugin.settings.queueWindowDays || 7) + 1);
+        await this.plugin.saveSettings();
+        this.display();
+      });
+    });
+    new import_obsidian2.Setting(containerEl).setName("\u6BCF\u65E5\u63A8\u9001\u6761\u6570").setDesc("\u6BCF\u5929\u63A8\u9001\u591A\u5C11\u6761\uFF0C\u8303\u56F4 1-20").addButton((button) => {
+      button.buttonEl.addClass("obsidian-recall-step-btn");
+      return button.setButtonText("-").onClick(async () => {
+        this.plugin.settings.dailyPushCount = Math.max(1, (this.plugin.settings.dailyPushCount || 1) - 1);
+        await this.plugin.saveSettings();
+        this.display();
+      });
+    }).addText((text) => {
+      text.inputEl.addClass("obsidian-recall-step-input");
+      return text.setValue(String(this.plugin.settings.dailyPushCount)).onChange(async (value) => {
+        const parsed = Number.parseInt(value, 10);
+        this.plugin.settings.dailyPushCount = Number.isFinite(parsed) ? Math.max(1, Math.min(20, parsed)) : 1;
+        await this.plugin.saveSettings();
+      });
+    }).addButton((button) => {
+      button.buttonEl.addClass("obsidian-recall-step-btn");
+      return button.setButtonText("+").onClick(async () => {
+        this.plugin.settings.dailyPushCount = Math.min(20, (this.plugin.settings.dailyPushCount || 1) + 1);
+        await this.plugin.saveSettings();
+        this.display();
+      });
+    });
+    new import_obsidian2.Setting(containerEl).setName("\u6392\u9664\u6587\u4EF6\u5939").setDesc("\u7528\u9017\u53F7\u5206\u9694\u591A\u4E2A\u6587\u4EF6\u5939\u524D\u7F00\uFF0C\u4F8B\u5982 Templates, Daily Notes").addText(
+      (text) => text.setValue(this.plugin.settings.excludedFolders.join(", ")).onChange(async (value) => {
+        this.plugin.settings.excludedFolders = value.split(",").map((item) => item.trim()).filter(Boolean);
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("\u6700\u77ED\u5B57\u6570").setDesc("\u77ED\u4E8E\u8FD9\u4E2A\u5B57\u6570\u7684\u7B14\u8BB0\u4E0D\u4F1A\u53C2\u4E0E\u540C\u6B65").addText(
+      (text) => text.setValue(String(this.plugin.settings.minNoteLength)).onChange(async (value) => {
+        const parsed = Number.parseInt(value, 10);
+        this.plugin.settings.minNoteLength = Number.isFinite(parsed) && parsed > 0 ? parsed : 50;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("\u4FDD\u5B58\u5230\u670D\u52A1\u7AEF").setDesc("\u70B9\u51FB\u540E\u5C06\u5F53\u524D\u9875\u9762\u914D\u7F6E\u5199\u5165\u670D\u52A1\u7AEF").addButton(
+      (button) => button.setButtonText("\u4FDD\u5B58\u8BBE\u7F6E").setCta().onClick(async () => {
+        await this.plugin.saveRemoteSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("\u64CD\u4F5C").setDesc("\u5E38\u7528\u64CD\u4F5C").addButton(
+      (button) => button.setButtonText("\u9000\u51FA\u4F1A\u8BDD").onClick(async () => {
+        await this.plugin.logout();
+      })
+    ).addButton(
+      (button) => button.setButtonText("\u8BFB\u53D6\u914D\u7F6E").onClick(async () => {
+        await this.plugin.refreshRemoteSettings();
+      })
+    ).addButton(
+      (button) => button.setButtonText("\u4FDD\u5B58\u914D\u7F6E").onClick(async () => {
+        await this.plugin.saveRemoteSettings();
+      })
+    ).addButton(
+      (button) => button.setButtonText("\u5BFC\u51FA\u914D\u5BF9\u7801").onClick(async () => {
+        await this.plugin.showPairCodeExportModal();
+      })
+    ).addButton(
+      (button) => button.setButtonText("\u5BFC\u5165\u914D\u5BF9\u7801").onClick(async () => {
+        await this.plugin.showPairCodeImportModal();
+      })
+    ).addButton(
+      (button) => button.setButtonText("\u7ACB\u5373\u540C\u6B65").onClick(async () => {
+        await this.plugin.syncNow();
+      })
+    );
+  }
+};
+function formatError(error) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
+}
+var PushHistoryModal = class extends import_obsidian2.Modal {
+  constructor(app, client, items) {
+    super(app);
+    this.client = client;
+    this.items = items;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("obsidian-recall-history-modal");
+    contentEl.createEl("h3", { text: "\u63A8\u9001\u5386\u53F2\uFF08\u6700\u8FD1 20 \u6761\uFF09" });
+    if (this.items.length === 0) {
+      contentEl.createEl("p", { text: "\u6682\u65E0\u63A8\u9001\u5386\u53F2\u3002" });
+      return;
+    }
+    for (const item of this.items) {
+      const row = contentEl.createDiv({ cls: "obsidian-recall-history-item" });
+      row.createDiv({ text: item.note_title || "(\u65E0\u6807\u9898)" });
+      row.createDiv({ text: item.note_path, cls: "obsidian-recall-history-path" });
+      row.createDiv({
+        text: `\u63A8\u9001\u65F6\u95F4\uFF1A${formatDateTime(item.pushed_at)}`,
+        cls: "obsidian-recall-history-time"
+      });
+      const buttonRow = row.createDiv({ cls: "obsidian-recall-history-actions" });
+      const detailButton = buttonRow.createEl("button", { text: "\u67E5\u770B\u8BE6\u60C5" });
+      detailButton.onclick = async () => {
+        var _a, _b;
+        try {
+          const detail = await this.client.getPushHistoryDetail(item.id);
+          const body = ((_a = detail.summary) == null ? void 0 : _a.trim()) || ((_b = detail.content) == null ? void 0 : _b.trim()) || "(\u65E0\u5185\u5BB9)";
+          new DetailModal(this.app, detail.note_title || "(\u65E0\u6807\u9898)", detail.note_path, body, detail.pushed_at).open();
+        } catch (error) {
+          new import_obsidian2.Notice(`\u8BFB\u53D6\u8BE6\u60C5\u5931\u8D25\uFF1A${formatError(error)}`);
+        }
+      };
+    }
+  }
+};
+var DetailModal = class extends import_obsidian2.Modal {
+  constructor(app, titleText, pathText, bodyText, pushedAt) {
+    super(app);
+    this.titleText = titleText;
+    this.pathText = pathText;
+    this.bodyText = bodyText;
+    this.pushedAt = pushedAt;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("obsidian-recall-history-modal");
+    contentEl.createEl("h3", { text: this.titleText });
+    contentEl.createEl("p", { text: this.pathText, cls: "obsidian-recall-history-path" });
+    contentEl.createEl("p", {
+      text: `\u63A8\u9001\u65F6\u95F4\uFF1A${formatDateTime(this.pushedAt)}`,
+      cls: "obsidian-recall-history-time"
+    });
+    contentEl.createEl("pre", { text: this.bodyText, cls: "obsidian-recall-history-body" });
+  }
+};
+var PairCodeExportModal = class extends import_obsidian2.Modal {
+  constructor(app, pairCode) {
+    super(app);
+    this.pairCode = pairCode;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("obsidian-recall-history-modal");
+    contentEl.createEl("h3", { text: "\u8BBE\u5907\u914D\u5BF9\u7801" });
+    const desc = contentEl.createEl("p", { text: "\u5728\u53E6\u4E00\u53F0\u8BBE\u5907\u7C98\u8D34\u8BE5\u914D\u5BF9\u7801\uFF0C\u5373\u53EF\u5171\u7528\u540C\u4E00\u7528\u6237\u8EAB\u4EFD\u3002" });
+    desc.addClass("obsidian-recall-history-path");
+    const input = contentEl.createEl("textarea");
+    input.value = this.pairCode;
+    input.readOnly = true;
+    input.style.width = "100%";
+    input.style.minHeight = "100px";
+    input.style.resize = "vertical";
+    const row = contentEl.createDiv({ cls: "obsidian-recall-history-actions" });
+    const copyButton = row.createEl("button", { text: "\u590D\u5236\u914D\u5BF9\u7801" });
+    copyButton.onclick = async () => {
+      await navigator.clipboard.writeText(this.pairCode);
+      new import_obsidian2.Notice("\u914D\u5BF9\u7801\u5DF2\u590D\u5236");
+    };
+  }
+};
+var PairCodeImportModal = class extends import_obsidian2.Modal {
+  constructor(app, onSubmit) {
+    super(app);
+    this.onSubmit = onSubmit;
+  }
+  onOpen() {
+    const { contentEl } = this;
+    contentEl.empty();
+    contentEl.addClass("obsidian-recall-history-modal");
+    contentEl.createEl("h3", { text: "\u5BFC\u5165\u914D\u5BF9\u7801" });
+    const input = contentEl.createEl("textarea");
+    input.placeholder = "\u7C98\u8D34\u914D\u5BF9\u7801\u6216 Token";
+    input.style.width = "100%";
+    input.style.minHeight = "100px";
+    input.style.resize = "vertical";
+    const row = contentEl.createDiv({ cls: "obsidian-recall-history-actions" });
+    const submit = row.createEl("button", { text: "\u5BFC\u5165\u5E76\u540C\u6B65\u914D\u7F6E" });
+    submit.onclick = async () => {
+      try {
+        await this.onSubmit(input.value);
+        new import_obsidian2.Notice("\u914D\u5BF9\u6210\u529F");
+        this.close();
+      } catch (error) {
+        new import_obsidian2.Notice(`\u5BFC\u5165\u5931\u8D25\uFF1A${formatError(error)}`);
+      }
+    };
+  }
+};
+function encodeBase64URL(value) {
+  const bytes = new TextEncoder().encode(value);
+  let binary = "";
+  for (const b of bytes) {
+    binary += String.fromCharCode(b);
+  }
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function decodeBase64URL(value) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padLength = (4 - normalized.length % 4) % 4;
+  const padded = normalized + "=".repeat(padLength);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return new TextDecoder().decode(bytes);
+}
+function formatDateTime(value) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+  return parsed.toLocaleString();
+}
+module.exports = ObsidianRecallPlugin;

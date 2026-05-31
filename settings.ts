@@ -1,0 +1,75 @@
+export interface RecallSettings {
+	serverUrl: string;
+	clientId: string;
+	token: string;
+	pushTime: string;
+	timezone: string;
+	dailyPushCount: number;
+	queueWindowDays: number;
+	rssUrl: string;
+	enableRSS: boolean;
+	enableCubox: boolean;
+	cuboxApiUrl: string;
+	cuboxFolder: string;
+	cuboxTags: string[];
+	syncMode: "local";
+	excludedFolders: string[];
+	minNoteLength: number;
+	lastSyncAt: string;
+	lastSyncCount: number;
+	queueCoveredDays: number;
+	queueLastDate: string;
+	queueItemCount: number;
+	queueDailyCount: number;
+	pushedHistory: LocalPushHistoryItem[];
+	queuedHistory: LocalPushHistoryItem[];
+	debugLog: string[];
+	debugLastError: string;
+}
+
+export interface LocalPushHistoryItem {
+	path: string;
+	pushedAt: string;
+}
+
+const DEFAULT_SETTINGS: RecallSettings = {
+	serverUrl: "",
+	clientId: "",
+	token: "",
+	pushTime: "08:00",
+	timezone: "Asia/Shanghai",
+	dailyPushCount: 1,
+	queueWindowDays: 7,
+	rssUrl: "",
+	enableRSS: true,
+	enableCubox: false,
+	cuboxApiUrl: "",
+	cuboxFolder: "",
+	cuboxTags: [],
+	syncMode: "local",
+	excludedFolders: [],
+	minNoteLength: 50,
+	lastSyncAt: "",
+	lastSyncCount: 0,
+	queueCoveredDays: 0,
+	queueLastDate: "",
+	queueItemCount: 0,
+	queueDailyCount: 1,
+	pushedHistory: [],
+	queuedHistory: [],
+	debugLog: [],
+	debugLastError: ""
+};
+
+export function normalizeSettings(settings: Partial<RecallSettings>): RecallSettings {
+  return {
+	    ...DEFAULT_SETTINGS,
+	    ...settings,
+	    cuboxTags: settings.cuboxTags ?? DEFAULT_SETTINGS.cuboxTags,
+	    excludedFolders: settings.excludedFolders ?? DEFAULT_SETTINGS.excludedFolders,
+	    pushedHistory: settings.pushedHistory ?? DEFAULT_SETTINGS.pushedHistory,
+	    queuedHistory: settings.queuedHistory ?? DEFAULT_SETTINGS.queuedHistory,
+	    debugLog: settings.debugLog ?? DEFAULT_SETTINGS.debugLog,
+	    debugLastError: settings.debugLastError ?? DEFAULT_SETTINGS.debugLastError
+	  };
+}

@@ -1,0 +1,135 @@
+.obsidian-recall-settings {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.obsidian-recall-settings-summary {
+  white-space: pre-line;
+  padding: 12px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  background: var(--background-secondary);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.obsidian-recall-rss-inline {
+  margin: -6px 0 4px;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.obsidian-recall-rss-input {
+  width: min(520px, 100%) !important;
+  max-width: 100%;
+}
+
+.obsidian-recall-settings .setting-item {
+  align-items: flex-start;
+}
+
+.obsidian-recall-settings .setting-item-info {
+  min-width: 180px;
+  flex: 1 1 260px;
+}
+
+.obsidian-recall-settings .setting-item-control {
+  flex: 1 1 420px;
+  width: 100%;
+  max-width: 100%;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.obsidian-recall-settings .setting-item-control input[type="text"],
+.obsidian-recall-settings .setting-item-control input[type="password"],
+.obsidian-recall-settings .setting-item-control textarea,
+.obsidian-recall-settings .setting-item-control select {
+  width: min(560px, 100%);
+  max-width: 100%;
+}
+
+.obsidian-recall-settings .setting-item-control textarea {
+  min-height: 108px;
+  resize: vertical;
+}
+
+.obsidian-recall-step-input {
+  width: 88px !important;
+  min-width: 88px;
+  text-align: center;
+}
+
+.obsidian-recall-step-btn {
+  min-width: 30px;
+  width: 30px;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+@media (max-width: 900px) {
+  .obsidian-recall-settings .setting-item {
+    display: grid;
+    gap: 8px;
+  }
+
+  .obsidian-recall-settings .setting-item-info,
+  .obsidian-recall-settings .setting-item-control {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+
+  .obsidian-recall-settings .setting-item-control {
+    justify-content: flex-start;
+  }
+
+  .obsidian-recall-settings .setting-item-control input[type="text"],
+  .obsidian-recall-settings .setting-item-control input[type="password"],
+  .obsidian-recall-settings .setting-item-control textarea,
+  .obsidian-recall-settings .setting-item-control select {
+    width: 100%;
+  }
+}
+
+.obsidian-recall-history-modal {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.obsidian-recall-history-item {
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+
+.obsidian-recall-history-path {
+  font-size: 12px;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+.obsidian-recall-history-time {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+.obsidian-recall-history-actions {
+  margin-top: 8px;
+}
+
+.obsidian-recall-history-body {
+  white-space: pre-wrap;
+  background: var(--background-secondary);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 8px;
+  padding: 10px;
+}

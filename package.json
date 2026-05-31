@@ -1,0 +1,16 @@
+{
+  "name": "obsidian-recall-plugin",
+  "version": "1.0.1",
+  "private": true,
+  "scripts": {
+    "build": "node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "esbuild": "^0.25.5",
+    "obsidian": "^1.8.10",
+    "tslib": "^2.8.1",
+    "typescript": "^5.4.0"
+  }
+}
