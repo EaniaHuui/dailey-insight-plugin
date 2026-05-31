@@ -977,6 +977,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("obsidian-recall-reader-view");
+    this.applyBottomOverlayOffset(contentEl);
     const items = await this.plugin.getTodayRecallItems();
     const progress = this.plugin.getTodayProgress(items);
     const firstUnread = this.plugin.findNextUnreadIndex(items);
@@ -1081,6 +1082,14 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     sourceButton.onclick = async () => {
       await this.plugin.revealSourceNote(current.path);
     };
+  }
+  applyBottomOverlayOffset(contentEl) {
+    var _a;
+    const fallback = window.matchMedia("(max-width: 768px)").matches ? 74 : 54;
+    const statusBar = document.querySelector(".status-bar");
+    const statusHeight = (_a = statusBar == null ? void 0 : statusBar.getBoundingClientRect().height) != null ? _a : 0;
+    const offset = Math.max(fallback, Math.ceil(statusHeight + 12));
+    contentEl.style.setProperty("--recall-status-offset", `${offset}px`);
   }
 };
 var RecallSidebarView = class extends import_obsidian2.ItemView {

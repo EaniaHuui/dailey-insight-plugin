@@ -919,6 +919,7 @@ class RecallReaderView extends ItemView {
 		const { contentEl } = this;
 		contentEl.empty();
 		contentEl.addClass("obsidian-recall-reader-view");
+		this.applyBottomOverlayOffset(contentEl);
 
 		const items = await this.plugin.getTodayRecallItems();
 		const progress = this.plugin.getTodayProgress(items);
@@ -1036,6 +1037,14 @@ class RecallReaderView extends ItemView {
 		sourceButton.onclick = async () => {
 			await this.plugin.revealSourceNote(current.path);
 		};
+	}
+
+	private applyBottomOverlayOffset(contentEl: HTMLElement): void {
+		const fallback = window.matchMedia("(max-width: 768px)").matches ? 74 : 54;
+		const statusBar = document.querySelector(".status-bar") as HTMLElement | null;
+		const statusHeight = statusBar?.getBoundingClientRect().height ?? 0;
+		const offset = Math.max(fallback, Math.ceil(statusHeight + 12));
+		contentEl.style.setProperty("--recall-status-offset", `${offset}px`);
 	}
 }
 
