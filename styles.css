@@ -290,9 +290,13 @@
   overflow: auto;
   padding: 2px 2px 2px 0;
   width: 100%;
-  max-width: 72ch;
+  max-width: none;
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb-bg) transparent;
+}
+
+.obsidian-recall-card-body > * {
+  max-width: 72ch;
 }
 
 .obsidian-recall-card-body::-webkit-scrollbar {
@@ -480,10 +484,13 @@
   }
 
   .obsidian-recall-card-body {
-    max-width: none;
     font-size: 14px;
     line-height: 1.62;
     padding-right: 2px;
+  }
+
+  .obsidian-recall-card-body > * {
+    max-width: 100%;
   }
 
   .obsidian-recall-toolbar {
