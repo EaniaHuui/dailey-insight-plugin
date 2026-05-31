@@ -257,6 +257,10 @@
   align-items: center;
 }
 
+.obsidian-recall-card-badges:empty {
+  display: none;
+}
+
 .obsidian-recall-badge {
   border: 1px solid var(--background-modifier-border);
   border-radius: 999px;
@@ -284,9 +288,24 @@
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
-  padding: 2px 8px 2px 0;
+  padding: 2px 2px 2px 0;
   width: 100%;
   max-width: 72ch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb-bg) transparent;
+}
+
+.obsidian-recall-card-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.obsidian-recall-card-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.obsidian-recall-card-body::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb-bg);
+  border-radius: 8px;
 }
 
 .obsidian-recall-card-body h1,

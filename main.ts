@@ -988,7 +988,6 @@ class RecallReaderView extends ItemView {
 		const pathEl = titleWrap.createDiv({ text: current.path, cls: "obsidian-recall-card-path" });
 		pathEl.title = current.path;
 		const badgeRow = cardTop.createDiv({ cls: "obsidian-recall-card-badges" });
-		badgeRow.createSpan({ text: `${this.currentIndex + 1}/${items.length}`, cls: "obsidian-recall-badge" });
 		if (state.revisit) {
 			badgeRow.createSpan({ text: "已加入再回顾", cls: "obsidian-recall-badge obsidian-recall-badge-accent" });
 		} else if (state.snoozed) {
