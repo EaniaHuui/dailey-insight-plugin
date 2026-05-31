@@ -991,9 +991,6 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("obsidian-recall-reader-view");
-    contentEl.style.overflow = "hidden";
-    contentEl.style.height = "100%";
-    contentEl.style.minHeight = "0";
     const items = await this.plugin.getTodayRecallItems();
     const progress = this.plugin.getTodayProgress(items);
     const firstUnread = this.plugin.findNextUnreadIndex(items);
@@ -1052,7 +1049,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
       completion.createDiv({ text: "\u4ECA\u5929\u7684\u56DE\u987E\u5DF2\u7ECF\u5904\u7406\u5B8C\u4E86\u3002", cls: "obsidian-recall-completion-title" });
       completion.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58 ${this.plugin.getFutureInventoryCount(7)} \u6761` });
     }
-    const footer = shell.createDiv({ cls: "obsidian-recall-toolbar" });
+    const footer = card.createDiv({ cls: "obsidian-recall-toolbar" });
     const prevButton = footer.createEl("button", { text: "\u4E0A\u4E00\u6761" });
     prevButton.disabled = this.currentIndex <= 0;
     prevButton.onclick = async () => {
@@ -1121,9 +1118,6 @@ var RecallSidebarView = class extends import_obsidian2.ItemView {
     const { contentEl } = this;
     contentEl.empty();
     contentEl.addClass("obsidian-recall-sidebar-view");
-    contentEl.style.overflow = "auto";
-    contentEl.style.height = "100%";
-    contentEl.style.minHeight = "0";
     const items = await this.plugin.getTodayRecallItems();
     const progress = this.plugin.getTodayProgress(items);
     const wrap = contentEl.createDiv({ cls: "obsidian-recall-sidebar-shell" });
