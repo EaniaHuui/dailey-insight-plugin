@@ -185,8 +185,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
     await this.recordDebug("onload:start");
     this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
     this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
-    this.statusBar = this.addStatusBarItem();
-    this.updateStatusBar();
     this.addRibbonIcon("history", "Obsidian \u6BCF\u65E5\u56DE\u987E", async () => {
       await this.openRecallReaderView();
     });
@@ -248,8 +246,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
     });
   }
   onunload() {
-    var _a;
-    (_a = this.statusBar) == null ? void 0 : _a.remove();
     this.app.workspace.detachLeavesOfType(RECALL_MAIN_VIEW);
     this.app.workspace.detachLeavesOfType(RECALL_SIDEBAR_VIEW);
   }
@@ -258,7 +254,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
   }
   async saveSettings() {
     await this.saveData(this.settings);
-    this.updateStatusBar();
   }
   async logout() {
     if (!this.settings.token) {
@@ -753,15 +748,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       serverUrl: this.settings.serverUrl,
       token: this.settings.token
     });
-  }
-  updateStatusBar() {
-    if (!this.statusBar) {
-      return;
-    }
-    const auth = this.settings.token ? "\u5DF2\u767B\u5F55" : "\u672A\u767B\u5F55";
-    const mode = "\u672C\u5730";
-    const suffix = this.settings.lastSyncCount > 0 ? " \xB7 \u5DF2\u8865\u961F\u5217" : "";
-    this.statusBar.setText(`Recall\uFF1A${auth} \xB7 ${mode}${suffix}`);
   }
   async openRecallReaderView() {
     var _a;

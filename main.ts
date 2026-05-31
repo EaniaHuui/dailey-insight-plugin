@@ -19,7 +19,6 @@ type TodayRecallItem = {
 
 class ObsidianRecallPlugin extends Plugin {
 	settings: RecallSettings = normalizeSettings({});
-	private statusBar?: HTMLElement;
 	private activeRecallPath = "";
 
 	async onload(): Promise<void> {
@@ -28,9 +27,6 @@ class ObsidianRecallPlugin extends Plugin {
 
 		this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
 		this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
-
-		this.statusBar = this.addStatusBarItem();
-		this.updateStatusBar();
 
 		this.addRibbonIcon("history", "Obsidian 每日回顾", async () => {
 			await this.openRecallReaderView();
@@ -103,7 +99,6 @@ class ObsidianRecallPlugin extends Plugin {
 	}
 
 	onunload(): void {
-		this.statusBar?.remove();
 		this.app.workspace.detachLeavesOfType(RECALL_MAIN_VIEW);
 		this.app.workspace.detachLeavesOfType(RECALL_SIDEBAR_VIEW);
 	}
@@ -114,7 +109,6 @@ class ObsidianRecallPlugin extends Plugin {
 
 	async saveSettings(): Promise<void> {
 		await this.saveData(this.settings);
-		this.updateStatusBar();
 	}
 
 	async logout(): Promise<void> {
@@ -667,20 +661,6 @@ class ObsidianRecallPlugin extends Plugin {
 			serverUrl: this.settings.serverUrl,
 			token: this.settings.token
 		});
-	}
-
-	private updateStatusBar(): void {
-		if (!this.statusBar) {
-			return;
-		}
-
-		const auth = this.settings.token ? "已登录" : "未登录";
-		const mode = "本地";
-		const suffix =
-			this.settings.lastSyncCount > 0
-				? " · 已补队列"
-				: "";
-		this.statusBar.setText(`Recall：${auth} · ${mode}${suffix}`);
 	}
 
 	async openRecallReaderView(): Promise<void> {
