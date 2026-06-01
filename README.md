@@ -1,6 +1,6 @@
-# Obsidian 每日回顾插件
+# Insight Flow 插件
 
-Obsidian 每日回顾是一个 Obsidian 社区插件。它会在你打开 Obsidian 时，从本地笔记中抽取回顾内容，补齐未来 1-30 天的库存，并把这些库存提交到服务端，再由服务端按天输出到 RSS 或推送到 Cubox。
+Insight Flow 是一个 Obsidian 社区插件。它会在你打开 Obsidian 时，从本地笔记中抽取回顾内容，补齐未来 1-30 天的库存，并把这些库存提交到服务端，再由服务端按天输出到 RSS 或推送到 Cubox。
 
 ## 主要功能
 
@@ -26,7 +26,7 @@ Obsidian 每日回顾是一个 Obsidian 社区插件。它会在你打开 Obsidi
 
 ### 阅读器入口
 
-- 左侧功能区图标：`Obsidian 每日回顾`
+- 左侧功能区图标：`Insight Flow`
 - 左侧功能区图标：`一键推送当前笔记`（火箭图标，立即推送）
 - 命令面板可执行 `打开今日回顾`
 - 命令面板可执行 `打开回顾侧边栏`
@@ -35,7 +35,7 @@ Obsidian 每日回顾是一个 Obsidian 社区插件。它会在你打开 Obsidi
 - 命令面板可执行 `测试服务端连接`
 - 命令面板可执行 `查看推送历史`
 - 命令面板可执行 `退出当前会话`
-- 命令面板可执行 `清空 Obsidian 每日回顾 Token`
+- 命令面板可执行 `清空 Insight Flow Token`
 
 ### 今日回顾动作
 
@@ -73,8 +73,8 @@ Obsidian 每日回顾是一个 Obsidian 社区插件。它会在你打开 Obsidi
 
 ### 插件标识
 
-- 社区插件显示名：`Obsidian 每日回顾`
-- `manifest.json` 插件 ID：`daily-note-recall`
+- 社区插件显示名：`Insight Flow`
+- `manifest.json` 插件 ID：`insight-flow`
 
 ## 本地开发
 
@@ -102,7 +102,7 @@ npm run build
 
 调试目录示例：
 
-- `/Users/zhuhui/project/document/.obsidian/plugins/obsidian-recall/`
+- `/Users/zhuhui/project/document/.obsidian/plugins/insight-flow/`
 
 ## 发布到 Obsidian 社区市场
 

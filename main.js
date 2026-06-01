@@ -174,8 +174,8 @@ function normalizeSettings(settings) {
 }
 
 // main.ts
-var RECALL_MAIN_VIEW = "obsidian-recall-main-view";
-var RECALL_SIDEBAR_VIEW = "obsidian-recall-sidebar-view";
+var RECALL_MAIN_VIEW = "insight-flow-main-view";
+var RECALL_SIDEBAR_VIEW = "insight-flow-sidebar-view";
 var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
   constructor() {
     super(...arguments);
@@ -195,7 +195,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
         await this.pushActiveNoteNow();
       });
       this.addCommand({
-        id: "obsidian-recall-clear-token",
+        id: "insight-flow-clear-token",
         name: "\u6E05\u7A7A Insight Flow Token",
         callback: async () => {
           this.settings.token = "";
@@ -204,49 +204,49 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
         }
       });
       this.addCommand({
-        id: "obsidian-recall-open-today",
+        id: "insight-flow-open-today",
         name: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E",
         callback: async () => {
           await this.openRecallReaderView();
         }
       });
       this.addCommand({
-        id: "obsidian-recall-open-sidebar",
+        id: "insight-flow-open-sidebar",
         name: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E\u4FA7\u8FB9\u680F",
         callback: async () => {
           await this.openRecallSidebarView(true);
         }
       });
       this.addCommand({
-        id: "obsidian-recall-sync-now",
+        id: "insight-flow-sync-now",
         name: "\u7ACB\u5373\u540C\u6B65\u7B14\u8BB0",
         callback: async () => {
           await this.syncNow();
         }
       });
       this.addCommand({
-        id: "obsidian-recall-push-active-note",
+        id: "insight-flow-push-active-note",
         name: "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0",
         callback: async () => {
           await this.pushActiveNoteNow();
         }
       });
       this.addCommand({
-        id: "obsidian-recall-test-connection",
+        id: "insight-flow-test-connection",
         name: "\u6D4B\u8BD5\u670D\u52A1\u7AEF\u8FDE\u63A5",
         callback: async () => {
           await this.testConnection();
         }
       });
       this.addCommand({
-        id: "obsidian-recall-logout",
+        id: "insight-flow-logout",
         name: "\u9000\u51FA\u5F53\u524D\u4F1A\u8BDD",
         callback: async () => {
           await this.logout();
         }
       });
       this.addCommand({
-        id: "obsidian-recall-push-history",
+        id: "insight-flow-push-history",
         name: "\u67E5\u770B\u63A8\u9001\u5386\u53F2",
         callback: async () => {
           await this.viewPushHistory();
@@ -1052,7 +1052,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
   async render() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.addClass("obsidian-recall-reader-view");
+    contentEl.addClass("insight-flow-reader-view");
     this.applyBottomOverlayOffset(contentEl);
     const items = await this.plugin.getTodayRecallItems();
     const progress = this.plugin.getTodayProgress(items);
@@ -1078,41 +1078,41 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     const today = formatDateLabel(/* @__PURE__ */ new Date());
     const current = items[this.currentIndex];
     const state = this.plugin.getRecallState(current.sourceDate, current.path);
-    const shell = contentEl.createDiv({ cls: "obsidian-recall-reader-shell" });
-    const header = shell.createDiv({ cls: "obsidian-recall-reader-header" });
+    const shell = contentEl.createDiv({ cls: "insight-flow-reader-shell" });
+    const header = shell.createDiv({ cls: "insight-flow-reader-header" });
     const titleBlock = header.createDiv();
-    titleBlock.createEl("div", { text: "\u4ECA\u65E5\u56DE\u987E", cls: "obsidian-recall-eyebrow" });
-    titleBlock.createEl("h2", { text: today, cls: "obsidian-recall-reader-title" });
-    const progressBar = shell.createDiv({ cls: "obsidian-recall-progress" });
-    const progressFill = progressBar.createDiv({ cls: "obsidian-recall-progress-fill" });
+    titleBlock.createEl("div", { text: "\u4ECA\u65E5\u56DE\u987E", cls: "insight-flow-eyebrow" });
+    titleBlock.createEl("h2", { text: today, cls: "insight-flow-reader-title" });
+    const progressBar = shell.createDiv({ cls: "insight-flow-progress" });
+    const progressFill = progressBar.createDiv({ cls: "insight-flow-progress-fill" });
     const progressPercent = items.length === 0 ? 0 : (this.currentIndex + 1) / items.length * 100;
     progressFill.style.width = `${progressPercent}%`;
     header.createDiv({
-      cls: "obsidian-recall-progress-meta",
+      cls: "insight-flow-progress-meta",
       text: `\u8FDB\u5EA6 ${this.currentIndex + 1}/${items.length}`
     });
-    const card = shell.createDiv({ cls: "obsidian-recall-card" });
-    const cardTop = card.createDiv({ cls: "obsidian-recall-card-top" });
+    const card = shell.createDiv({ cls: "insight-flow-card" });
+    const cardTop = card.createDiv({ cls: "insight-flow-card-top" });
     const titleWrap = cardTop.createDiv();
-    titleWrap.createEl("h3", { text: current.title, cls: "obsidian-recall-card-title" });
-    const pathEl = titleWrap.createDiv({ text: current.path, cls: "obsidian-recall-card-path" });
+    titleWrap.createEl("h3", { text: current.title, cls: "insight-flow-card-title" });
+    const pathEl = titleWrap.createDiv({ text: current.path, cls: "insight-flow-card-path" });
     pathEl.title = current.path;
-    const badgeRow = cardTop.createDiv({ cls: "obsidian-recall-card-badges" });
+    const badgeRow = cardTop.createDiv({ cls: "insight-flow-card-badges" });
     if (state.revisit) {
-      badgeRow.createSpan({ text: "\u5DF2\u52A0\u5165\u518D\u56DE\u987E", cls: "obsidian-recall-badge obsidian-recall-badge-accent" });
+      badgeRow.createSpan({ text: "\u5DF2\u52A0\u5165\u518D\u56DE\u987E", cls: "insight-flow-badge insight-flow-badge-accent" });
     } else if (state.snoozed) {
-      badgeRow.createSpan({ text: "\u7A0D\u540E\u518D\u770B", cls: "obsidian-recall-badge" });
+      badgeRow.createSpan({ text: "\u7A0D\u540E\u518D\u770B", cls: "insight-flow-badge" });
     } else if (state.read) {
-      badgeRow.createSpan({ text: "\u5DF2\u8BFB", cls: "obsidian-recall-badge obsidian-recall-badge-muted" });
+      badgeRow.createSpan({ text: "\u5DF2\u8BFB", cls: "insight-flow-badge insight-flow-badge-muted" });
     }
-    const body = card.createDiv({ cls: "obsidian-recall-card-body markdown-rendered" });
+    const body = card.createDiv({ cls: "insight-flow-card-body markdown-rendered" });
     await import_obsidian2.MarkdownRenderer.render(this.app, current.content, body, current.path, this.plugin);
     if (progress.read >= progress.total) {
-      const completion = card.createDiv({ cls: "obsidian-recall-completion" });
-      completion.createDiv({ text: "\u4ECA\u5929\u7684\u56DE\u987E\u5DF2\u7ECF\u5904\u7406\u5B8C\u4E86\u3002", cls: "obsidian-recall-completion-title" });
+      const completion = card.createDiv({ cls: "insight-flow-completion" });
+      completion.createDiv({ text: "\u4ECA\u5929\u7684\u56DE\u987E\u5DF2\u7ECF\u5904\u7406\u5B8C\u4E86\u3002", cls: "insight-flow-completion-title" });
       completion.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58 ${this.plugin.getFutureInventoryCount(7)} \u6761` });
     }
-    const footer = shell.createDiv({ cls: "obsidian-recall-toolbar" });
+    const footer = shell.createDiv({ cls: "insight-flow-toolbar" });
     const prevButton = footer.createEl("button", { text: "\u4E0A\u4E00\u6761" });
     prevButton.disabled = this.currentIndex <= 0;
     prevButton.onclick = async () => {
@@ -1193,17 +1193,17 @@ var RecallSidebarView = class extends import_obsidian2.ItemView {
   async render() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.addClass("obsidian-recall-sidebar-view");
+    contentEl.addClass("insight-flow-sidebar-view");
     const items = await this.plugin.getTodayRecallItems();
     const progress = this.plugin.getTodayProgress(items);
-    const wrap = contentEl.createDiv({ cls: "obsidian-recall-sidebar-shell" });
-    wrap.createEl("h3", { text: "\u6BCF\u65E5\u56DE\u987E", cls: "obsidian-recall-sidebar-title" });
-    const stats = wrap.createDiv({ cls: "obsidian-recall-sidebar-stats" });
+    const wrap = contentEl.createDiv({ cls: "insight-flow-sidebar-shell" });
+    wrap.createEl("h3", { text: "\u6BCF\u65E5\u56DE\u987E", cls: "insight-flow-sidebar-title" });
+    const stats = wrap.createDiv({ cls: "insight-flow-sidebar-stats" });
     stats.createDiv({ text: `\u4ECA\u65E5\u961F\u5217\uFF1A${progress.total} \u6761` });
     stats.createDiv({ text: `\u5DF2\u8BFB\uFF1A${progress.read} \u6761` });
     stats.createDiv({ text: `\u5269\u4F59\uFF1A${progress.remaining} \u6761` });
     stats.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58\uFF1A${this.plugin.getFutureInventoryCount(7)} \u6761` });
-    const actionRow = wrap.createDiv({ cls: "obsidian-recall-sidebar-actions" });
+    const actionRow = wrap.createDiv({ cls: "insight-flow-sidebar-actions" });
     const openButton = actionRow.createEl("button", { text: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E" });
     openButton.addClass("mod-cta");
     openButton.onclick = async () => {
@@ -1214,21 +1214,21 @@ var RecallSidebarView = class extends import_obsidian2.ItemView {
       await this.plugin.refreshRecallViews();
     };
     if (items.length === 0) {
-      wrap.createDiv({ text: "\u4ECA\u5929\u8FD8\u6CA1\u6709\u53EF\u9605\u8BFB\u7684\u56DE\u987E\u5185\u5BB9\u3002", cls: "obsidian-recall-sidebar-empty" });
+      wrap.createDiv({ text: "\u4ECA\u5929\u8FD8\u6CA1\u6709\u53EF\u9605\u8BFB\u7684\u56DE\u987E\u5185\u5BB9\u3002", cls: "insight-flow-sidebar-empty" });
       return;
     }
-    const list = wrap.createDiv({ cls: "obsidian-recall-sidebar-list" });
+    const list = wrap.createDiv({ cls: "insight-flow-sidebar-list" });
     for (const item of items) {
       const state = this.plugin.getRecallState(item.sourceDate, item.path);
-      const row = list.createDiv({ cls: "obsidian-recall-sidebar-item" });
+      const row = list.createDiv({ cls: "insight-flow-sidebar-item" });
       row.tabIndex = 0;
-      const top = row.createDiv({ cls: "obsidian-recall-sidebar-item-top" });
-      top.createSpan({ text: item.title, cls: "obsidian-recall-sidebar-item-title" });
+      const top = row.createDiv({ cls: "insight-flow-sidebar-item-top" });
+      top.createSpan({ text: item.title, cls: "insight-flow-sidebar-item-title" });
       top.createSpan({
         text: state.read ? "\u5DF2\u8BFB" : state.snoozed ? "\u7A0D\u540E" : "\u672A\u8BFB",
-        cls: "obsidian-recall-sidebar-item-state"
+        cls: "insight-flow-sidebar-item-state"
       });
-      row.createDiv({ text: item.path, cls: "obsidian-recall-sidebar-item-path" });
+      row.createDiv({ text: item.path, cls: "insight-flow-sidebar-item-path" });
       const openItem = async () => {
         this.plugin.setActiveRecallPath(item.path);
         await this.plugin.openRecallReaderView();
@@ -1246,11 +1246,11 @@ var RecallSidebarView = class extends import_obsidian2.ItemView {
   }
 };
 function renderRecallEmptyState(containerEl, plugin, message) {
-  const shell = containerEl.createDiv({ cls: "obsidian-recall-reader-shell" });
-  const card = shell.createDiv({ cls: "obsidian-recall-card obsidian-recall-card-empty" });
-  card.createEl("h3", { text: "\u4ECA\u65E5\u56DE\u987E", cls: "obsidian-recall-card-title" });
-  card.createDiv({ text: message, cls: "obsidian-recall-empty-text" });
-  const actions = card.createDiv({ cls: "obsidian-recall-toolbar" });
+  const shell = containerEl.createDiv({ cls: "insight-flow-reader-shell" });
+  const card = shell.createDiv({ cls: "insight-flow-card insight-flow-card-empty" });
+  card.createEl("h3", { text: "\u4ECA\u65E5\u56DE\u987E", cls: "insight-flow-card-title" });
+  card.createDiv({ text: message, cls: "insight-flow-empty-text" });
+  const actions = card.createDiv({ cls: "insight-flow-toolbar" });
   const syncButton = actions.createEl("button", { text: "\u7ACB\u5373\u8865\u9F50\u961F\u5217" });
   syncButton.addClass("mod-cta");
   syncButton.onclick = async () => {
@@ -1266,7 +1266,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.addClass("obsidian-recall-settings");
+    containerEl.addClass("insight-flow-settings");
     containerEl.createEl("h2", { text: "Insight Flow \u8BBE\u7F6E" });
     containerEl.createEl("p", {
       text: "\u7528\u4E8E\u4ECE\u672C\u5730\u62BD\u53D6\u7B14\u8BB0\u5E76\u9884\u63D0\u4EA4\u5230\u670D\u52A1\u7AEF\uFF0C\u6309\u8BA1\u5212\u751F\u6210\u6BCF\u65E5\u56DE\u987E\uFF08RSS \u53EF\u8BA2\u9605\uFF09\u3002"
@@ -1283,7 +1283,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
       this.plugin.settings.debugLastError ? `\u6700\u8FD1\u9519\u8BEF\uFF1A${this.plugin.settings.debugLastError}` : "\u6700\u8FD1\u9519\u8BEF\uFF1A\u65E0"
     ];
     containerEl.createEl("div", {
-      cls: "obsidian-recall-settings-summary",
+      cls: "insight-flow-settings-summary",
       text: statusLines.join("\n")
     });
     new import_obsidian2.Setting(containerEl).setName("\u670D\u52A1\u5668\u5730\u5740").setDesc("Insight Flow \u670D\u52A1\u7AEF\u5730\u5740").addText(
@@ -1322,7 +1322,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
     if (this.plugin.settings.enableRSS) {
       new import_obsidian2.Setting(containerEl).setName("RSS \u5730\u5740").setDesc("\u6BCF\u4E2A\u7528\u6237\u72EC\u7ACB\u7684\u79C1\u6709\u8BA2\u9605\u5730\u5740\uFF08\u53EA\u8BFB\uFF09").addText((text) => {
         text.setPlaceholder("\uFF08\u5C1A\u672A\u83B7\u53D6 RSS \u5730\u5740\uFF09").setValue(this.plugin.settings.rssUrl.trim()).setDisabled(true);
-        text.inputEl.addClass("obsidian-recall-rss-input");
+        text.inputEl.addClass("insight-flow-rss-input");
       }).addButton(
         (button) => button.setButtonText("\u83B7\u53D6").onClick(async () => {
           await this.plugin.refreshUserRSS();
@@ -1384,21 +1384,21 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
     new import_obsidian2.Setting(containerEl).setName("\u9884\u63D0\u4EA4\u5929\u6570").setDesc(
       "\u6BCF\u6B21\u6253\u5F00 Obsidian \u65F6\uFF0C\u4F1A\u628A\u672A\u6765 N \u5929\u7684\u56DE\u987E\u5E93\u5B58\u8865\u9F50\u5230\u670D\u52A1\u7AEF\uFF081-30 \u5929\uFF09\u3002\u5373\u4F7F\u4F60\u540E\u7EED\u51E0\u5929\u4E0D\u6253\u5F00 Obsidian\uFF0C\u670D\u52A1\u5668\u4E5F\u53EF\u6309\u8BA1\u5212\u6301\u7EED\u63A8\u9001\u3002"
     ).addButton((button) => {
-      button.buttonEl.addClass("obsidian-recall-step-btn");
+      button.buttonEl.addClass("insight-flow-step-btn");
       return button.setButtonText("-").onClick(async () => {
         this.plugin.settings.queueWindowDays = Math.max(1, (this.plugin.settings.queueWindowDays || 7) - 1);
         await this.plugin.saveSettings();
         this.display();
       });
     }).addText((text) => {
-      text.inputEl.addClass("obsidian-recall-step-input");
+      text.inputEl.addClass("insight-flow-step-input");
       return text.setValue(String(this.plugin.settings.queueWindowDays || 7)).onChange(async (value) => {
         const parsed = Number.parseInt(value, 10);
         this.plugin.settings.queueWindowDays = Number.isFinite(parsed) ? Math.max(1, Math.min(30, parsed)) : 7;
         await this.plugin.saveSettings();
       });
     }).addButton((button) => {
-      button.buttonEl.addClass("obsidian-recall-step-btn");
+      button.buttonEl.addClass("insight-flow-step-btn");
       return button.setButtonText("+").onClick(async () => {
         this.plugin.settings.queueWindowDays = Math.min(30, (this.plugin.settings.queueWindowDays || 7) + 1);
         await this.plugin.saveSettings();
@@ -1406,21 +1406,21 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
       });
     });
     new import_obsidian2.Setting(containerEl).setName("\u6BCF\u65E5\u63A8\u9001\u6761\u6570").setDesc("\u6BCF\u5929\u63A8\u9001\u591A\u5C11\u6761\uFF0C\u8303\u56F4 1-20").addButton((button) => {
-      button.buttonEl.addClass("obsidian-recall-step-btn");
+      button.buttonEl.addClass("insight-flow-step-btn");
       return button.setButtonText("-").onClick(async () => {
         this.plugin.settings.dailyPushCount = Math.max(1, (this.plugin.settings.dailyPushCount || 1) - 1);
         await this.plugin.saveSettings();
         this.display();
       });
     }).addText((text) => {
-      text.inputEl.addClass("obsidian-recall-step-input");
+      text.inputEl.addClass("insight-flow-step-input");
       return text.setValue(String(this.plugin.settings.dailyPushCount)).onChange(async (value) => {
         const parsed = Number.parseInt(value, 10);
         this.plugin.settings.dailyPushCount = Number.isFinite(parsed) ? Math.max(1, Math.min(20, parsed)) : 1;
         await this.plugin.saveSettings();
       });
     }).addButton((button) => {
-      button.buttonEl.addClass("obsidian-recall-step-btn");
+      button.buttonEl.addClass("insight-flow-step-btn");
       return button.setButtonText("+").onClick(async () => {
         this.plugin.settings.dailyPushCount = Math.min(20, (this.plugin.settings.dailyPushCount || 1) + 1);
         await this.plugin.saveSettings();
@@ -1480,21 +1480,21 @@ var PushHistoryModal = class extends import_obsidian2.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.addClass("obsidian-recall-history-modal");
+    contentEl.addClass("insight-flow-history-modal");
     contentEl.createEl("h3", { text: "\u63A8\u9001\u5386\u53F2\uFF08\u6700\u8FD1 20 \u6761\uFF09" });
     if (this.items.length === 0) {
       contentEl.createEl("p", { text: "\u6682\u65E0\u63A8\u9001\u5386\u53F2\u3002" });
       return;
     }
     for (const item of this.items) {
-      const row = contentEl.createDiv({ cls: "obsidian-recall-history-item" });
+      const row = contentEl.createDiv({ cls: "insight-flow-history-item" });
       row.createDiv({ text: item.note_title || "(\u65E0\u6807\u9898)" });
-      row.createDiv({ text: item.note_path, cls: "obsidian-recall-history-path" });
+      row.createDiv({ text: item.note_path, cls: "insight-flow-history-path" });
       row.createDiv({
         text: `\u63A8\u9001\u65F6\u95F4\uFF1A${formatDateTime(item.pushed_at)}`,
-        cls: "obsidian-recall-history-time"
+        cls: "insight-flow-history-time"
       });
-      const buttonRow = row.createDiv({ cls: "obsidian-recall-history-actions" });
+      const buttonRow = row.createDiv({ cls: "insight-flow-history-actions" });
       const detailButton = buttonRow.createEl("button", { text: "\u67E5\u770B\u8BE6\u60C5" });
       detailButton.onclick = async () => {
         var _a, _b;
@@ -1520,14 +1520,14 @@ var DetailModal = class extends import_obsidian2.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.addClass("obsidian-recall-history-modal");
+    contentEl.addClass("insight-flow-history-modal");
     contentEl.createEl("h3", { text: this.titleText });
-    contentEl.createEl("p", { text: this.pathText, cls: "obsidian-recall-history-path" });
+    contentEl.createEl("p", { text: this.pathText, cls: "insight-flow-history-path" });
     contentEl.createEl("p", {
       text: `\u63A8\u9001\u65F6\u95F4\uFF1A${formatDateTime(this.pushedAt)}`,
-      cls: "obsidian-recall-history-time"
+      cls: "insight-flow-history-time"
     });
-    contentEl.createEl("pre", { text: this.bodyText, cls: "obsidian-recall-history-body" });
+    contentEl.createEl("pre", { text: this.bodyText, cls: "insight-flow-history-body" });
   }
 };
 var PairCodeExportModal = class extends import_obsidian2.Modal {
@@ -1538,17 +1538,17 @@ var PairCodeExportModal = class extends import_obsidian2.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.addClass("obsidian-recall-history-modal");
+    contentEl.addClass("insight-flow-history-modal");
     contentEl.createEl("h3", { text: "\u8BBE\u5907\u914D\u5BF9\u7801" });
     const desc = contentEl.createEl("p", { text: "\u5728\u53E6\u4E00\u53F0\u8BBE\u5907\u7C98\u8D34\u8BE5\u914D\u5BF9\u7801\uFF0C\u5373\u53EF\u5171\u7528\u540C\u4E00\u7528\u6237\u8EAB\u4EFD\u3002" });
-    desc.addClass("obsidian-recall-history-path");
+    desc.addClass("insight-flow-history-path");
     const input = contentEl.createEl("textarea");
     input.value = this.pairCode;
     input.readOnly = true;
     input.style.width = "100%";
     input.style.minHeight = "100px";
     input.style.resize = "vertical";
-    const row = contentEl.createDiv({ cls: "obsidian-recall-history-actions" });
+    const row = contentEl.createDiv({ cls: "insight-flow-history-actions" });
     const copyButton = row.createEl("button", { text: "\u590D\u5236\u914D\u5BF9\u7801" });
     copyButton.onclick = async () => {
       await navigator.clipboard.writeText(this.pairCode);
@@ -1564,14 +1564,14 @@ var PairCodeImportModal = class extends import_obsidian2.Modal {
   onOpen() {
     const { contentEl } = this;
     contentEl.empty();
-    contentEl.addClass("obsidian-recall-history-modal");
+    contentEl.addClass("insight-flow-history-modal");
     contentEl.createEl("h3", { text: "\u5BFC\u5165\u914D\u5BF9\u7801" });
     const input = contentEl.createEl("textarea");
     input.placeholder = "\u7C98\u8D34\u914D\u5BF9\u7801\u6216 Token";
     input.style.width = "100%";
     input.style.minHeight = "100px";
     input.style.resize = "vertical";
-    const row = contentEl.createDiv({ cls: "obsidian-recall-history-actions" });
+    const row = contentEl.createDiv({ cls: "insight-flow-history-actions" });
     const submit = row.createEl("button", { text: "\u5BFC\u5165\u5E76\u540C\u6B65\u914D\u7F6E" });
     submit.onclick = async () => {
       try {

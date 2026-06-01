@@ -1,6 +1,6 @@
 {
-  "id": "daily-note-recall",
-  "name": "Obsidian 每日回顾",
+  "id": "insight-flow",
+  "name": "Insight Flow",
   "version": "1.0.1",
   "minAppVersion": "1.0.0",
   "description": "每天回顾你的历史笔记。",

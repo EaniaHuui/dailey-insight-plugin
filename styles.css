@@ -1,11 +1,11 @@
-.obsidian-recall-settings {
+.insight-flow-settings {
   display: grid;
   gap: 12px;
   width: 100%;
   max-width: 100%;
 }
 
-.obsidian-recall-settings-summary {
+.insight-flow-settings-summary {
   white-space: pre-line;
   padding: 12px;
   border: 1px solid var(--background-modifier-border);
@@ -15,7 +15,7 @@
   overflow-wrap: anywhere;
 }
 
-.obsidian-recall-rss-inline {
+.insight-flow-rss-inline {
   margin: -6px 0 4px;
   padding: 0;
   font-size: 12px;
@@ -24,21 +24,21 @@
   word-break: break-all;
 }
 
-.obsidian-recall-rss-input {
+.insight-flow-rss-input {
   width: min(520px, 100%) !important;
   max-width: 100%;
 }
 
-.obsidian-recall-settings .setting-item {
+.insight-flow-settings .setting-item {
   align-items: flex-start;
 }
 
-.obsidian-recall-settings .setting-item-info {
+.insight-flow-settings .setting-item-info {
   min-width: 180px;
   flex: 1 1 260px;
 }
 
-.obsidian-recall-settings .setting-item-control {
+.insight-flow-settings .setting-item-control {
   flex: 1 1 420px;
   width: 100%;
   max-width: 100%;
@@ -47,26 +47,26 @@
   flex-wrap: wrap;
 }
 
-.obsidian-recall-settings .setting-item-control input[type="text"],
-.obsidian-recall-settings .setting-item-control input[type="password"],
-.obsidian-recall-settings .setting-item-control textarea,
-.obsidian-recall-settings .setting-item-control select {
+.insight-flow-settings .setting-item-control input[type="text"],
+.insight-flow-settings .setting-item-control input[type="password"],
+.insight-flow-settings .setting-item-control textarea,
+.insight-flow-settings .setting-item-control select {
   width: min(560px, 100%);
   max-width: 100%;
 }
 
-.obsidian-recall-settings .setting-item-control textarea {
+.insight-flow-settings .setting-item-control textarea {
   min-height: 108px;
   resize: vertical;
 }
 
-.obsidian-recall-step-input {
+.insight-flow-step-input {
   width: 88px !important;
   min-width: 88px;
   text-align: center;
 }
 
-.obsidian-recall-step-btn {
+.insight-flow-step-btn {
   min-width: 30px;
   width: 30px;
   padding-left: 0;
@@ -74,59 +74,59 @@
 }
 
 @media (max-width: 900px) {
-  .obsidian-recall-settings .setting-item {
+  .insight-flow-settings .setting-item {
     display: grid;
     gap: 8px;
   }
 
-  .obsidian-recall-settings .setting-item-info,
-  .obsidian-recall-settings .setting-item-control {
+  .insight-flow-settings .setting-item-info,
+  .insight-flow-settings .setting-item-control {
     width: 100%;
     min-width: 0;
     flex: none;
   }
 
-  .obsidian-recall-settings .setting-item-control {
+  .insight-flow-settings .setting-item-control {
     justify-content: flex-start;
   }
 
-  .obsidian-recall-settings .setting-item-control input[type="text"],
-  .obsidian-recall-settings .setting-item-control input[type="password"],
-  .obsidian-recall-settings .setting-item-control textarea,
-  .obsidian-recall-settings .setting-item-control select {
+  .insight-flow-settings .setting-item-control input[type="text"],
+  .insight-flow-settings .setting-item-control input[type="password"],
+  .insight-flow-settings .setting-item-control textarea,
+  .insight-flow-settings .setting-item-control select {
     width: 100%;
   }
 }
 
-.obsidian-recall-history-modal {
+.insight-flow-history-modal {
   max-height: 70vh;
   overflow-y: auto;
 }
 
-.obsidian-recall-history-item {
+.insight-flow-history-item {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 10px;
 }
 
-.obsidian-recall-history-path {
+.insight-flow-history-path {
   font-size: 12px;
   color: var(--text-muted);
   word-break: break-all;
 }
 
-.obsidian-recall-history-time {
+.insight-flow-history-time {
   font-size: 12px;
   color: var(--text-faint);
   margin-top: 4px;
 }
 
-.obsidian-recall-history-actions {
+.insight-flow-history-actions {
   margin-top: 8px;
 }
 
-.obsidian-recall-history-body {
+.insight-flow-history-body {
   white-space: pre-wrap;
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
@@ -134,13 +134,13 @@
   padding: 10px;
 }
 
-.obsidian-recall-reader-view,
-.obsidian-recall-sidebar-view {
+.insight-flow-reader-view,
+.insight-flow-sidebar-view {
   height: 100%;
   min-height: 0;
 }
 
-.obsidian-recall-reader-view {
+.insight-flow-reader-view {
   --recall-toolbar-height: 52px;
   --recall-status-offset: 12px;
   --recall-toolbar-bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--status-bar-scroll-padding, 0px) + var(--recall-status-offset));
@@ -155,7 +155,7 @@
   box-sizing: border-box;
 }
 
-.obsidian-recall-reader-shell {
+.insight-flow-reader-shell {
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
@@ -171,20 +171,20 @@
   overflow: hidden;
 }
 
-.obsidian-recall-reader-header {
+.insight-flow-reader-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
 }
 
-.obsidian-recall-eyebrow {
+.insight-flow-eyebrow {
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 4px;
 }
 
-.obsidian-recall-reader-title {
+.insight-flow-reader-title {
   margin: 0;
   font-size: 28px;
   line-height: 1.18;
@@ -193,7 +193,7 @@
   word-break: break-word;
 }
 
-.obsidian-recall-progress {
+.insight-flow-progress {
   height: 5px;
   border-radius: 999px;
   background: var(--background-modifier-border);
@@ -201,14 +201,14 @@
   flex: 0 0 auto;
 }
 
-.obsidian-recall-progress-fill {
+.insight-flow-progress-fill {
   height: 100%;
   border-radius: 999px;
   background: var(--interactive-accent);
   transition: width 180ms ease;
 }
 
-.obsidian-recall-progress-meta {
+.insight-flow-progress-meta {
   font-size: 12px;
   color: var(--text-muted);
   text-align: right;
@@ -216,7 +216,7 @@
   white-space: nowrap;
 }
 
-.obsidian-recall-card {
+.insight-flow-card {
   border: 1px solid var(--background-modifier-border);
   background: var(--background-secondary);
   border-radius: 8px;
@@ -231,7 +231,7 @@
   box-shadow: none;
 }
 
-.obsidian-recall-card-top {
+.insight-flow-card-top {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -239,12 +239,12 @@
   flex: 0 0 auto;
 }
 
-.obsidian-recall-card-top > div:first-child {
+.insight-flow-card-top > div:first-child {
   min-width: 0;
   flex: 1 1 auto;
 }
 
-.obsidian-recall-card-title {
+.insight-flow-card-title {
   margin: 0;
   font-size: 20px;
   line-height: 1.28;
@@ -253,7 +253,7 @@
   word-break: break-word;
 }
 
-.obsidian-recall-card-path {
+.insight-flow-card-path {
   margin-top: 4px;
   color: var(--text-muted);
   font-size: 11px;
@@ -263,7 +263,7 @@
   opacity: 0.92;
 }
 
-.obsidian-recall-card-badges {
+.insight-flow-card-badges {
   display: flex;
   gap: 6px;
   flex-wrap: nowrap;
@@ -272,11 +272,11 @@
   align-items: center;
 }
 
-.obsidian-recall-card-badges:empty {
+.insight-flow-card-badges:empty {
   display: none;
 }
 
-.obsidian-recall-badge {
+.insight-flow-badge {
   border: 1px solid var(--background-modifier-border);
   border-radius: 999px;
   padding: 4px 10px;
@@ -288,16 +288,16 @@
   font-variant-numeric: tabular-nums;
 }
 
-.obsidian-recall-badge-accent {
+.insight-flow-badge-accent {
   color: var(--interactive-accent);
   border-color: color-mix(in srgb, var(--interactive-accent) 40%, transparent);
 }
 
-.obsidian-recall-badge-muted {
+.insight-flow-badge-muted {
   color: var(--text-faint);
 }
 
-.obsidian-recall-card-body {
+.insight-flow-card-body {
   line-height: 1.72;
   font-size: 15px;
   flex: 1 1 auto;
@@ -310,41 +310,41 @@
   scrollbar-color: var(--scrollbar-thumb-bg) transparent;
 }
 
-.obsidian-recall-card-body > * {
+.insight-flow-card-body > * {
   max-width: 72ch;
 }
 
-.obsidian-recall-card-body::-webkit-scrollbar {
+.insight-flow-card-body::-webkit-scrollbar {
   width: 8px;
 }
 
-.obsidian-recall-card-body::-webkit-scrollbar-track {
+.insight-flow-card-body::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.obsidian-recall-card-body::-webkit-scrollbar-thumb {
+.insight-flow-card-body::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb-bg);
   border-radius: 8px;
 }
 
-.obsidian-recall-card-body h1,
-.obsidian-recall-card-body h2,
-.obsidian-recall-card-body h3 {
+.insight-flow-card-body h1,
+.insight-flow-card-body h2,
+.insight-flow-card-body h3 {
   margin-top: 1em;
   margin-bottom: 0.45em;
 }
 
-.obsidian-recall-card-body p {
+.insight-flow-card-body p {
   margin-block: 0.75em;
 }
 
-.obsidian-recall-card-body ul,
-.obsidian-recall-card-body ol {
+.insight-flow-card-body ul,
+.insight-flow-card-body ol {
   margin-block: 0.65em;
   padding-inline-start: 1.35em;
 }
 
-.obsidian-recall-toolbar {
+.insight-flow-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -364,13 +364,13 @@
   box-sizing: border-box;
 }
 
-.obsidian-recall-toolbar button {
+.insight-flow-toolbar button {
   min-height: 36px;
   border-radius: 8px;
   font-size: 14px;
 }
 
-.obsidian-recall-completion {
+.insight-flow-completion {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   background: var(--background-primary-alt);
@@ -379,34 +379,34 @@
   flex: 0 0 auto;
 }
 
-.obsidian-recall-completion-title {
+.insight-flow-completion-title {
   font-weight: 600;
   color: var(--text-normal);
   margin-bottom: 4px;
 }
 
-.obsidian-recall-card-empty {
+.insight-flow-card-empty {
   min-height: 220px;
   align-content: center;
 }
 
-.obsidian-recall-empty-text {
+.insight-flow-empty-text {
   color: var(--text-muted);
 }
 
-.obsidian-recall-sidebar-shell {
+.insight-flow-sidebar-shell {
   padding: 14px 12px 16px;
   display: grid;
   gap: 10px;
 }
 
-.obsidian-recall-sidebar-title {
+.insight-flow-sidebar-title {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
 }
 
-.obsidian-recall-sidebar-stats {
+.insight-flow-sidebar-stats {
   display: grid;
   gap: 6px;
   border: 1px solid var(--background-modifier-border);
@@ -416,18 +416,18 @@
   font-size: 13px;
 }
 
-.obsidian-recall-sidebar-actions {
+.insight-flow-sidebar-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.obsidian-recall-sidebar-list {
+.insight-flow-sidebar-list {
   display: grid;
   gap: 8px;
 }
 
-.obsidian-recall-sidebar-item {
+.insight-flow-sidebar-item {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   padding: 10px;
@@ -436,34 +436,34 @@
   transition: border-color 120ms ease, background 120ms ease;
 }
 
-.obsidian-recall-sidebar-item:hover,
-.obsidian-recall-sidebar-item:focus-visible {
+.insight-flow-sidebar-item:hover,
+.insight-flow-sidebar-item:focus-visible {
   border-color: var(--interactive-accent);
   background: var(--background-primary-alt);
   outline: none;
 }
 
-.obsidian-recall-sidebar-item-top {
+.insight-flow-sidebar-item-top {
   display: flex;
   gap: 10px;
   justify-content: space-between;
   align-items: flex-start;
 }
 
-.obsidian-recall-sidebar-item-title {
+.insight-flow-sidebar-item-title {
   font-size: 13px;
   line-height: 1.4;
   font-weight: 600;
 }
 
-.obsidian-recall-sidebar-item-state {
+.insight-flow-sidebar-item-state {
   font-size: 11px;
   color: var(--text-muted);
   white-space: nowrap;
 }
 
-.obsidian-recall-sidebar-item-path,
-.obsidian-recall-sidebar-empty {
+.insight-flow-sidebar-item-path,
+.insight-flow-sidebar-empty {
   margin-top: 6px;
   font-size: 11px;
   color: var(--text-muted);
@@ -471,62 +471,62 @@
 }
 
 @media (max-width: 768px) {
-  .obsidian-recall-reader-view {
+  .insight-flow-reader-view {
     --recall-status-offset: 58px;
     --recall-toolbar-height: 88px;
   }
 
-  .obsidian-recall-reader-shell {
+  .insight-flow-reader-shell {
     max-width: 100%;
     padding: 8px 8px var(--recall-shell-bottom-space);
     gap: 8px;
   }
 
-  .obsidian-recall-reader-header,
-  .obsidian-recall-card-top {
+  .insight-flow-reader-header,
+  .insight-flow-card-top {
     display: grid;
   }
 
-  .obsidian-recall-progress-meta {
+  .insight-flow-progress-meta {
     text-align: left;
   }
 
-  .obsidian-recall-reader-title {
+  .insight-flow-reader-title {
     font-size: 21px;
   }
 
-  .obsidian-recall-card-badges {
+  .insight-flow-card-badges {
     justify-items: start;
     justify-content: flex-start;
     flex-wrap: wrap;
   }
 
-  .obsidian-recall-badge {
+  .insight-flow-badge {
     max-width: 100%;
     white-space: normal;
     overflow-wrap: anywhere;
   }
 
-  .obsidian-recall-card {
+  .insight-flow-card {
     padding: 10px;
     gap: 8px;
   }
 
-  .obsidian-recall-card-title {
+  .insight-flow-card-title {
     font-size: 17px;
   }
 
-  .obsidian-recall-card-body {
+  .insight-flow-card-body {
     font-size: 14px;
     line-height: 1.62;
     padding-right: 2px;
   }
 
-  .obsidian-recall-card-body > * {
+  .insight-flow-card-body > * {
     max-width: 100%;
   }
 
-  .obsidian-recall-toolbar {
+  .insight-flow-toolbar {
     width: calc(100% - 16px);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -535,33 +535,33 @@
     margin-bottom: 0;
   }
 
-  .obsidian-recall-toolbar button {
+  .insight-flow-toolbar button {
     width: 100%;
     min-height: 36px;
     font-size: 13px;
     padding: 0 8px;
   }
 
-  .obsidian-recall-sidebar-shell {
+  .insight-flow-sidebar-shell {
     padding: 12px 10px 14px;
   }
 
-  .obsidian-recall-sidebar-stats,
-  .obsidian-recall-sidebar-item {
+  .insight-flow-sidebar-stats,
+  .insight-flow-sidebar-item {
     padding: 10px;
   }
 }
 
 @media (max-width: 480px) {
-  .obsidian-recall-reader-title {
+  .insight-flow-reader-title {
     font-size: 20px;
   }
 
-  .obsidian-recall-toolbar {
+  .insight-flow-toolbar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .obsidian-recall-toolbar button {
+  .insight-flow-toolbar button {
     min-height: 34px;
     font-size: 12px;
     padding: 0 6px;
