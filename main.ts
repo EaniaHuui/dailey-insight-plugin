@@ -307,38 +307,22 @@ class ObsidianRecallPlugin extends Plugin {
 
 		try {
 			await this.pushCurrentSettingsToServer();
-			const queueDays = Math.max(1, Math.min(30, this.settings.queueWindowDays || 7));
-			const status = await this.client().getQueueStatus(queueDays);
-			const dailyCount = Math.max(1, Math.min(20, status.daily_push_count || this.settings.dailyPushCount || 1));
-			const slot = this.pickNextQueueSlot(status.items, dailyCount, queueDays);
-			if (!slot) {
-				new Notice(`未来 ${queueDays} 天队列已满，请先提高每日条数或扩大预提交天数`);
-				return;
-			}
-
-			const queueItem: QueueRecallItem = {
+			const response = await this.client().pushInstant({
 				path: file.path,
 				title: file.basename,
 				content,
 				content_hash: await sha256Hex(content),
-				note_updated_at: new Date(file.stat.mtime).toISOString(),
-				scheduled_date: slot.scheduledDate,
-				slot_index: slot.slotIndex
-			};
-			const response = await this.client().queueRecalls([queueItem]);
-			if (response.queued > 0) {
-				this.settings.queuedHistory = this.normalizePushedHistory([
-					...this.settings.queuedHistory,
-					{ path: file.path, pushedAt: `${slot.scheduledDate}T00:00:00.000Z` }
-				]);
+				note_updated_at: new Date(file.stat.mtime).toISOString()
+			});
+			if (response.pushed) {
 				this.settings.lastSyncAt = new Date().toISOString();
-				this.settings.lastSyncCount = response.queued;
+				this.settings.lastSyncCount = 1;
 				await this.saveSettings();
 				await this.refreshRecallViews();
-				new Notice(`已加入推送队列：${slot.scheduledDate} 第${slot.slotIndex}条`);
+				new Notice("已立即推送当前笔记");
 				return;
 			}
-			new Notice("加入队列失败：可能是内容重复或队列槽位冲突");
+			new Notice("立即推送失败");
 		} catch (error) {
 			await this.recordDebug(`push-active:error:${formatError(error)}`, true);
 			new Notice(`一键推送失败：${formatError(error)}`);

@@ -102,6 +102,19 @@ export interface QueueStatusResponse {
 	items: QueueStatusItem[];
 }
 
+export interface InstantPushRequest {
+	path: string;
+	title: string;
+	content: string;
+	content_hash: string;
+	note_updated_at: string;
+}
+
+export interface InstantPushResponse {
+	pushed: boolean;
+	history_id?: string;
+}
+
 export interface UserRSSResponse {
 	rss_url: string;
 }
@@ -184,6 +197,10 @@ export class APIClient {
 
 	async getQueueStatus(days = 7): Promise<QueueStatusResponse> {
 		return this.request<QueueStatusResponse>("GET", `/api/v1/recalls/queue/status?days=${days}`);
+	}
+
+	async pushInstant(payload: InstantPushRequest): Promise<InstantPushResponse> {
+		return this.request<InstantPushResponse>("POST", "/api/v1/push/instant", payload);
 	}
 
 	async getUserRSS(): Promise<UserRSSResponse> {

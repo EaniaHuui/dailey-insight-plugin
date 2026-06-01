@@ -73,6 +73,9 @@ var APIClient = class {
   async getQueueStatus(days = 7) {
     return this.request("GET", `/api/v1/recalls/queue/status?days=${days}`);
   }
+  async pushInstant(payload) {
+    return this.request("POST", "/api/v1/push/instant", payload);
+  }
   async getUserRSS() {
     return this.request("GET", "/api/v1/user/rss");
   }
@@ -433,37 +436,22 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
     }
     try {
       await this.pushCurrentSettingsToServer();
-      const queueDays = Math.max(1, Math.min(30, this.settings.queueWindowDays || 7));
-      const status = await this.client().getQueueStatus(queueDays);
-      const dailyCount = Math.max(1, Math.min(20, status.daily_push_count || this.settings.dailyPushCount || 1));
-      const slot = this.pickNextQueueSlot(status.items, dailyCount, queueDays);
-      if (!slot) {
-        new import_obsidian2.Notice(`\u672A\u6765 ${queueDays} \u5929\u961F\u5217\u5DF2\u6EE1\uFF0C\u8BF7\u5148\u63D0\u9AD8\u6BCF\u65E5\u6761\u6570\u6216\u6269\u5927\u9884\u63D0\u4EA4\u5929\u6570`);
-        return;
-      }
-      const queueItem = {
+      const response = await this.client().pushInstant({
         path: file.path,
         title: file.basename,
         content,
         content_hash: await sha256Hex(content),
-        note_updated_at: new Date(file.stat.mtime).toISOString(),
-        scheduled_date: slot.scheduledDate,
-        slot_index: slot.slotIndex
-      };
-      const response = await this.client().queueRecalls([queueItem]);
-      if (response.queued > 0) {
-        this.settings.queuedHistory = this.normalizePushedHistory([
-          ...this.settings.queuedHistory,
-          { path: file.path, pushedAt: `${slot.scheduledDate}T00:00:00.000Z` }
-        ]);
+        note_updated_at: new Date(file.stat.mtime).toISOString()
+      });
+      if (response.pushed) {
         this.settings.lastSyncAt = (/* @__PURE__ */ new Date()).toISOString();
-        this.settings.lastSyncCount = response.queued;
+        this.settings.lastSyncCount = 1;
         await this.saveSettings();
         await this.refreshRecallViews();
-        new import_obsidian2.Notice(`\u5DF2\u52A0\u5165\u63A8\u9001\u961F\u5217\uFF1A${slot.scheduledDate} \u7B2C${slot.slotIndex}\u6761`);
+        new import_obsidian2.Notice("\u5DF2\u7ACB\u5373\u63A8\u9001\u5F53\u524D\u7B14\u8BB0");
         return;
       }
-      new import_obsidian2.Notice("\u52A0\u5165\u961F\u5217\u5931\u8D25\uFF1A\u53EF\u80FD\u662F\u5185\u5BB9\u91CD\u590D\u6216\u961F\u5217\u69FD\u4F4D\u51B2\u7A81");
+      new import_obsidian2.Notice("\u7ACB\u5373\u63A8\u9001\u5931\u8D25");
     } catch (error) {
       await this.recordDebug(`push-active:error:${formatError(error)}`, true);
       new import_obsidian2.Notice(`\u4E00\u952E\u63A8\u9001\u5931\u8D25\uFF1A${formatError(error)}`);
