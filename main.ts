@@ -29,7 +29,7 @@ class ObsidianRecallPlugin extends Plugin {
 			this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
 			this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
 
-			this.addRibbonIcon("history", "Insight Flow", async () => {
+			this.addRibbonIcon("history", "Dailey Insight", async () => {
 				await this.openRecallReaderView();
 			});
 			this.addRibbonIcon("rocket", "一键推送当前笔记", async () => {
@@ -38,7 +38,7 @@ class ObsidianRecallPlugin extends Plugin {
 
 			this.addCommand({
 			id: "insight-flow-clear-token",
-			name: "清空 Insight Flow Token",
+			name: "清空 Dailey Insight Token",
 			callback: async () => {
 				this.settings.token = "";
 				await this.saveSettings();
@@ -108,13 +108,13 @@ class ObsidianRecallPlugin extends Plugin {
 				void this.runStartupFlow();
 			});
 		} catch (error) {
-			console.error("Insight Flow 加载失败", error);
+			console.error("Dailey Insight 加载失败", error);
 			try {
 				await this.recordDebug(`onload:error:${formatError(error)}`, true);
 			} catch {
 				// ignore debug persistence errors
 			}
-			new Notice(`Insight Flow 加载失败：${formatError(error)}`);
+			new Notice(`Dailey Insight 加载失败：${formatError(error)}`);
 		}
 	}
 
@@ -409,7 +409,7 @@ class ObsidianRecallPlugin extends Plugin {
 			}
 		} catch (error) {
 			await this.recordDebug(`startup:error:${formatError(error)}`, true);
-			console.error("Insight Flow startup flow failed", error);
+			console.error("Dailey Insight startup flow failed", error);
 		}
 	}
 
@@ -1244,7 +1244,7 @@ class RecallSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 		containerEl.addClass("insight-flow-settings");
-		containerEl.createEl("h2", { text: "Insight Flow 设置" });
+		containerEl.createEl("h2", { text: "Dailey Insight 设置" });
 		containerEl.createEl("p", {
 			text: "用于从本地抽取笔记并预提交到服务端，按计划生成每日推荐（RSS 可订阅）。"
 		});
@@ -1269,7 +1269,7 @@ class RecallSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("服务器地址")
-			.setDesc("Insight Flow 服务端地址")
+			.setDesc("Dailey Insight 服务端地址")
 			.addText((text) =>
 				text
 					.setPlaceholder("https://your-recall-server.example")

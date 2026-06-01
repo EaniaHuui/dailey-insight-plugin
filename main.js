@@ -188,7 +188,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       await this.recordDebug("onload:start");
       this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
       this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
-      this.addRibbonIcon("history", "Insight Flow", async () => {
+      this.addRibbonIcon("history", "Dailey Insight", async () => {
         await this.openRecallReaderView();
       });
       this.addRibbonIcon("rocket", "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0", async () => {
@@ -196,7 +196,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       });
       this.addCommand({
         id: "insight-flow-clear-token",
-        name: "\u6E05\u7A7A Insight Flow Token",
+        name: "\u6E05\u7A7A Dailey Insight Token",
         callback: async () => {
           this.settings.token = "";
           await this.saveSettings();
@@ -258,12 +258,12 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
         void this.runStartupFlow();
       });
     } catch (error) {
-      console.error("Insight Flow \u52A0\u8F7D\u5931\u8D25", error);
+      console.error("Dailey Insight \u52A0\u8F7D\u5931\u8D25", error);
       try {
         await this.recordDebug(`onload:error:${formatError(error)}`, true);
       } catch (e) {
       }
-      new import_obsidian2.Notice(`Insight Flow \u52A0\u8F7D\u5931\u8D25\uFF1A${formatError(error)}`);
+      new import_obsidian2.Notice(`Dailey Insight \u52A0\u8F7D\u5931\u8D25\uFF1A${formatError(error)}`);
     }
   }
   onunload() {
@@ -528,7 +528,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       }
     } catch (error) {
       await this.recordDebug(`startup:error:${formatError(error)}`, true);
-      console.error("Insight Flow startup flow failed", error);
+      console.error("Dailey Insight startup flow failed", error);
     }
   }
   ensureClientID() {
@@ -1267,7 +1267,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.addClass("insight-flow-settings");
-    containerEl.createEl("h2", { text: "Insight Flow \u8BBE\u7F6E" });
+    containerEl.createEl("h2", { text: "Dailey Insight \u8BBE\u7F6E" });
     containerEl.createEl("p", {
       text: "\u7528\u4E8E\u4ECE\u672C\u5730\u62BD\u53D6\u7B14\u8BB0\u5E76\u9884\u63D0\u4EA4\u5230\u670D\u52A1\u7AEF\uFF0C\u6309\u8BA1\u5212\u751F\u6210\u6BCF\u65E5\u63A8\u8350\uFF08RSS \u53EF\u8BA2\u9605\uFF09\u3002"
     });
@@ -1286,7 +1286,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
       cls: "insight-flow-settings-summary",
       text: statusLines.join("\n")
     });
-    new import_obsidian2.Setting(containerEl).setName("\u670D\u52A1\u5668\u5730\u5740").setDesc("Insight Flow \u670D\u52A1\u7AEF\u5730\u5740").addText(
+    new import_obsidian2.Setting(containerEl).setName("\u670D\u52A1\u5668\u5730\u5740").setDesc("Dailey Insight \u670D\u52A1\u7AEF\u5730\u5740").addText(
       (text) => text.setPlaceholder("https://your-recall-server.example").setValue(this.plugin.settings.serverUrl).onChange(async (value) => {
         this.plugin.settings.serverUrl = value.trim();
         await this.plugin.saveSettings();
