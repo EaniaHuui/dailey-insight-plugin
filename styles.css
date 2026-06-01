@@ -1,11 +1,11 @@
-.insight-flow-settings {
+.dailey-insight-settings {
   display: grid;
   gap: 12px;
   width: 100%;
   max-width: 100%;
 }
 
-.insight-flow-settings-summary {
+.dailey-insight-settings-summary {
   white-space: pre-line;
   padding: 12px;
   border: 1px solid var(--background-modifier-border);
@@ -15,7 +15,7 @@
   overflow-wrap: anywhere;
 }
 
-.insight-flow-rss-inline {
+.dailey-insight-rss-inline {
   margin: -6px 0 4px;
   padding: 0;
   font-size: 12px;
@@ -24,21 +24,21 @@
   word-break: break-all;
 }
 
-.insight-flow-rss-input {
+.dailey-insight-rss-input {
   width: min(520px, 100%) !important;
   max-width: 100%;
 }
 
-.insight-flow-settings .setting-item {
+.dailey-insight-settings .setting-item {
   align-items: flex-start;
 }
 
-.insight-flow-settings .setting-item-info {
+.dailey-insight-settings .setting-item-info {
   min-width: 180px;
   flex: 1 1 260px;
 }
 
-.insight-flow-settings .setting-item-control {
+.dailey-insight-settings .setting-item-control {
   flex: 1 1 420px;
   width: 100%;
   max-width: 100%;
@@ -47,26 +47,26 @@
   flex-wrap: wrap;
 }
 
-.insight-flow-settings .setting-item-control input[type="text"],
-.insight-flow-settings .setting-item-control input[type="password"],
-.insight-flow-settings .setting-item-control textarea,
-.insight-flow-settings .setting-item-control select {
+.dailey-insight-settings .setting-item-control input[type="text"],
+.dailey-insight-settings .setting-item-control input[type="password"],
+.dailey-insight-settings .setting-item-control textarea,
+.dailey-insight-settings .setting-item-control select {
   width: min(560px, 100%);
   max-width: 100%;
 }
 
-.insight-flow-settings .setting-item-control textarea {
+.dailey-insight-settings .setting-item-control textarea {
   min-height: 108px;
   resize: vertical;
 }
 
-.insight-flow-step-input {
+.dailey-insight-step-input {
   width: 88px !important;
   min-width: 88px;
   text-align: center;
 }
 
-.insight-flow-step-btn {
+.dailey-insight-step-btn {
   min-width: 30px;
   width: 30px;
   padding-left: 0;
@@ -74,59 +74,59 @@
 }
 
 @media (max-width: 900px) {
-  .insight-flow-settings .setting-item {
+  .dailey-insight-settings .setting-item {
     display: grid;
     gap: 8px;
   }
 
-  .insight-flow-settings .setting-item-info,
-  .insight-flow-settings .setting-item-control {
+  .dailey-insight-settings .setting-item-info,
+  .dailey-insight-settings .setting-item-control {
     width: 100%;
     min-width: 0;
     flex: none;
   }
 
-  .insight-flow-settings .setting-item-control {
+  .dailey-insight-settings .setting-item-control {
     justify-content: flex-start;
   }
 
-  .insight-flow-settings .setting-item-control input[type="text"],
-  .insight-flow-settings .setting-item-control input[type="password"],
-  .insight-flow-settings .setting-item-control textarea,
-  .insight-flow-settings .setting-item-control select {
+  .dailey-insight-settings .setting-item-control input[type="text"],
+  .dailey-insight-settings .setting-item-control input[type="password"],
+  .dailey-insight-settings .setting-item-control textarea,
+  .dailey-insight-settings .setting-item-control select {
     width: 100%;
   }
 }
 
-.insight-flow-history-modal {
+.dailey-insight-history-modal {
   max-height: 70vh;
   overflow-y: auto;
 }
 
-.insight-flow-history-item {
+.dailey-insight-history-item {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   padding: 10px;
   margin-bottom: 10px;
 }
 
-.insight-flow-history-path {
+.dailey-insight-history-path {
   font-size: 12px;
   color: var(--text-muted);
   word-break: break-all;
 }
 
-.insight-flow-history-time {
+.dailey-insight-history-time {
   font-size: 12px;
   color: var(--text-faint);
   margin-top: 4px;
 }
 
-.insight-flow-history-actions {
+.dailey-insight-history-actions {
   margin-top: 8px;
 }
 
-.insight-flow-history-body {
+.dailey-insight-history-body {
   white-space: pre-wrap;
   background: var(--background-secondary);
   border: 1px solid var(--background-modifier-border);
@@ -134,13 +134,13 @@
   padding: 10px;
 }
 
-.insight-flow-reader-view,
-.insight-flow-sidebar-view {
+.dailey-insight-reader-view,
+.dailey-insight-sidebar-view {
   height: 100%;
   min-height: 0;
 }
 
-.insight-flow-reader-view {
+.dailey-insight-reader-view {
   --recall-toolbar-height: 52px;
   --recall-status-offset: 12px;
   --recall-toolbar-bottom: calc(max(12px, env(safe-area-inset-bottom)) + var(--status-bar-scroll-padding, 0px) + var(--recall-status-offset));
@@ -155,7 +155,7 @@
   box-sizing: border-box;
 }
 
-.insight-flow-reader-shell {
+.dailey-insight-reader-shell {
   width: 100%;
   max-width: 860px;
   margin: 0 auto;
@@ -171,20 +171,20 @@
   overflow: hidden;
 }
 
-.insight-flow-reader-header {
+.dailey-insight-reader-header {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
 }
 
-.insight-flow-eyebrow {
+.dailey-insight-eyebrow {
   font-size: 12px;
   color: var(--text-muted);
   margin-bottom: 4px;
 }
 
-.insight-flow-reader-title {
+.dailey-insight-reader-title {
   margin: 0;
   font-size: 28px;
   line-height: 1.18;
@@ -193,7 +193,7 @@
   word-break: break-word;
 }
 
-.insight-flow-progress {
+.dailey-insight-progress {
   height: 5px;
   border-radius: 999px;
   background: var(--background-modifier-border);
@@ -201,14 +201,14 @@
   flex: 0 0 auto;
 }
 
-.insight-flow-progress-fill {
+.dailey-insight-progress-fill {
   height: 100%;
   border-radius: 999px;
   background: var(--interactive-accent);
   transition: width 180ms ease;
 }
 
-.insight-flow-progress-meta {
+.dailey-insight-progress-meta {
   font-size: 12px;
   color: var(--text-muted);
   text-align: right;
@@ -216,7 +216,7 @@
   white-space: nowrap;
 }
 
-.insight-flow-card {
+.dailey-insight-card {
   border: 1px solid var(--background-modifier-border);
   background: var(--background-secondary);
   border-radius: 8px;
@@ -231,7 +231,7 @@
   box-shadow: none;
 }
 
-.insight-flow-card-top {
+.dailey-insight-card-top {
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -239,12 +239,12 @@
   flex: 0 0 auto;
 }
 
-.insight-flow-card-top > div:first-child {
+.dailey-insight-card-top > div:first-child {
   min-width: 0;
   flex: 1 1 auto;
 }
 
-.insight-flow-card-title {
+.dailey-insight-card-title {
   margin: 0;
   font-size: 20px;
   line-height: 1.28;
@@ -253,7 +253,7 @@
   word-break: break-word;
 }
 
-.insight-flow-card-path {
+.dailey-insight-card-path {
   margin-top: 4px;
   color: var(--text-muted);
   font-size: 11px;
@@ -263,7 +263,7 @@
   opacity: 0.92;
 }
 
-.insight-flow-card-badges {
+.dailey-insight-card-badges {
   display: flex;
   gap: 6px;
   flex-wrap: nowrap;
@@ -272,11 +272,11 @@
   align-items: center;
 }
 
-.insight-flow-card-badges:empty {
+.dailey-insight-card-badges:empty {
   display: none;
 }
 
-.insight-flow-badge {
+.dailey-insight-badge {
   border: 1px solid var(--background-modifier-border);
   border-radius: 999px;
   padding: 4px 10px;
@@ -288,16 +288,16 @@
   font-variant-numeric: tabular-nums;
 }
 
-.insight-flow-badge-accent {
+.dailey-insight-badge-accent {
   color: var(--interactive-accent);
   border-color: color-mix(in srgb, var(--interactive-accent) 40%, transparent);
 }
 
-.insight-flow-badge-muted {
+.dailey-insight-badge-muted {
   color: var(--text-faint);
 }
 
-.insight-flow-card-body {
+.dailey-insight-card-body {
   line-height: 1.72;
   font-size: 15px;
   flex: 1 1 auto;
@@ -310,41 +310,41 @@
   scrollbar-color: var(--scrollbar-thumb-bg) transparent;
 }
 
-.insight-flow-card-body > * {
+.dailey-insight-card-body > * {
   max-width: 72ch;
 }
 
-.insight-flow-card-body::-webkit-scrollbar {
+.dailey-insight-card-body::-webkit-scrollbar {
   width: 8px;
 }
 
-.insight-flow-card-body::-webkit-scrollbar-track {
+.dailey-insight-card-body::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.insight-flow-card-body::-webkit-scrollbar-thumb {
+.dailey-insight-card-body::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-thumb-bg);
   border-radius: 8px;
 }
 
-.insight-flow-card-body h1,
-.insight-flow-card-body h2,
-.insight-flow-card-body h3 {
+.dailey-insight-card-body h1,
+.dailey-insight-card-body h2,
+.dailey-insight-card-body h3 {
   margin-top: 1em;
   margin-bottom: 0.45em;
 }
 
-.insight-flow-card-body p {
+.dailey-insight-card-body p {
   margin-block: 0.75em;
 }
 
-.insight-flow-card-body ul,
-.insight-flow-card-body ol {
+.dailey-insight-card-body ul,
+.dailey-insight-card-body ol {
   margin-block: 0.65em;
   padding-inline-start: 1.35em;
 }
 
-.insight-flow-toolbar {
+.dailey-insight-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
@@ -364,13 +364,13 @@
   box-sizing: border-box;
 }
 
-.insight-flow-toolbar button {
+.dailey-insight-toolbar button {
   min-height: 36px;
   border-radius: 8px;
   font-size: 14px;
 }
 
-.insight-flow-completion {
+.dailey-insight-completion {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   background: var(--background-primary-alt);
@@ -379,34 +379,34 @@
   flex: 0 0 auto;
 }
 
-.insight-flow-completion-title {
+.dailey-insight-completion-title {
   font-weight: 600;
   color: var(--text-normal);
   margin-bottom: 4px;
 }
 
-.insight-flow-card-empty {
+.dailey-insight-card-empty {
   min-height: 220px;
   align-content: center;
 }
 
-.insight-flow-empty-text {
+.dailey-insight-empty-text {
   color: var(--text-muted);
 }
 
-.insight-flow-sidebar-shell {
+.dailey-insight-sidebar-shell {
   padding: 14px 12px 16px;
   display: grid;
   gap: 10px;
 }
 
-.insight-flow-sidebar-title {
+.dailey-insight-sidebar-title {
   margin: 0;
   font-size: 17px;
   font-weight: 600;
 }
 
-.insight-flow-sidebar-stats {
+.dailey-insight-sidebar-stats {
   display: grid;
   gap: 6px;
   border: 1px solid var(--background-modifier-border);
@@ -416,18 +416,18 @@
   font-size: 13px;
 }
 
-.insight-flow-sidebar-actions {
+.dailey-insight-sidebar-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
-.insight-flow-sidebar-list {
+.dailey-insight-sidebar-list {
   display: grid;
   gap: 8px;
 }
 
-.insight-flow-sidebar-item {
+.dailey-insight-sidebar-item {
   border: 1px solid var(--background-modifier-border);
   border-radius: 8px;
   padding: 10px;
@@ -436,34 +436,34 @@
   transition: border-color 120ms ease, background 120ms ease;
 }
 
-.insight-flow-sidebar-item:hover,
-.insight-flow-sidebar-item:focus-visible {
+.dailey-insight-sidebar-item:hover,
+.dailey-insight-sidebar-item:focus-visible {
   border-color: var(--interactive-accent);
   background: var(--background-primary-alt);
   outline: none;
 }
 
-.insight-flow-sidebar-item-top {
+.dailey-insight-sidebar-item-top {
   display: flex;
   gap: 10px;
   justify-content: space-between;
   align-items: flex-start;
 }
 
-.insight-flow-sidebar-item-title {
+.dailey-insight-sidebar-item-title {
   font-size: 13px;
   line-height: 1.4;
   font-weight: 600;
 }
 
-.insight-flow-sidebar-item-state {
+.dailey-insight-sidebar-item-state {
   font-size: 11px;
   color: var(--text-muted);
   white-space: nowrap;
 }
 
-.insight-flow-sidebar-item-path,
-.insight-flow-sidebar-empty {
+.dailey-insight-sidebar-item-path,
+.dailey-insight-sidebar-empty {
   margin-top: 6px;
   font-size: 11px;
   color: var(--text-muted);
@@ -471,62 +471,62 @@
 }
 
 @media (max-width: 768px) {
-  .insight-flow-reader-view {
+  .dailey-insight-reader-view {
     --recall-status-offset: 58px;
     --recall-toolbar-height: 88px;
   }
 
-  .insight-flow-reader-shell {
+  .dailey-insight-reader-shell {
     max-width: 100%;
     padding: 8px 8px var(--recall-shell-bottom-space);
     gap: 8px;
   }
 
-  .insight-flow-reader-header,
-  .insight-flow-card-top {
+  .dailey-insight-reader-header,
+  .dailey-insight-card-top {
     display: grid;
   }
 
-  .insight-flow-progress-meta {
+  .dailey-insight-progress-meta {
     text-align: left;
   }
 
-  .insight-flow-reader-title {
+  .dailey-insight-reader-title {
     font-size: 21px;
   }
 
-  .insight-flow-card-badges {
+  .dailey-insight-card-badges {
     justify-items: start;
     justify-content: flex-start;
     flex-wrap: wrap;
   }
 
-  .insight-flow-badge {
+  .dailey-insight-badge {
     max-width: 100%;
     white-space: normal;
     overflow-wrap: anywhere;
   }
 
-  .insight-flow-card {
+  .dailey-insight-card {
     padding: 10px;
     gap: 8px;
   }
 
-  .insight-flow-card-title {
+  .dailey-insight-card-title {
     font-size: 17px;
   }
 
-  .insight-flow-card-body {
+  .dailey-insight-card-body {
     font-size: 14px;
     line-height: 1.62;
     padding-right: 2px;
   }
 
-  .insight-flow-card-body > * {
+  .dailey-insight-card-body > * {
     max-width: 100%;
   }
 
-  .insight-flow-toolbar {
+  .dailey-insight-toolbar {
     width: calc(100% - 16px);
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -535,33 +535,33 @@
     margin-bottom: 0;
   }
 
-  .insight-flow-toolbar button {
+  .dailey-insight-toolbar button {
     width: 100%;
     min-height: 36px;
     font-size: 13px;
     padding: 0 8px;
   }
 
-  .insight-flow-sidebar-shell {
+  .dailey-insight-sidebar-shell {
     padding: 12px 10px 14px;
   }
 
-  .insight-flow-sidebar-stats,
-  .insight-flow-sidebar-item {
+  .dailey-insight-sidebar-stats,
+  .dailey-insight-sidebar-item {
     padding: 10px;
   }
 }
 
 @media (max-width: 480px) {
-  .insight-flow-reader-title {
+  .dailey-insight-reader-title {
     font-size: 20px;
   }
 
-  .insight-flow-toolbar {
+  .dailey-insight-toolbar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .insight-flow-toolbar button {
+  .dailey-insight-toolbar button {
     min-height: 34px;
     font-size: 12px;
     padding: 0 6px;

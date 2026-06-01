@@ -4,8 +4,8 @@ import { sha256Hex } from "./crypto";
 import { normalizeSettings, type LocalPushHistoryItem, type RecallItemState, type RecallSettings } from "./settings";
 import { type LocalNote } from "./sync";
 
-const RECALL_MAIN_VIEW = "insight-flow-main-view";
-const RECALL_SIDEBAR_VIEW = "insight-flow-sidebar-view";
+const RECALL_MAIN_VIEW = "dailey-insight-main-view";
+const RECALL_SIDEBAR_VIEW = "dailey-insight-sidebar-view";
 
 type TodayRecallItem = {
 	path: string;
@@ -37,7 +37,7 @@ class ObsidianRecallPlugin extends Plugin {
 			});
 
 			this.addCommand({
-			id: "insight-flow-clear-token",
+			id: "dailey-insight-clear-token",
 			name: "清空 Dailey Insight Token",
 			callback: async () => {
 				this.settings.token = "";
@@ -47,7 +47,7 @@ class ObsidianRecallPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "insight-flow-open-today",
+			id: "dailey-insight-open-today",
 			name: "打开今日推荐",
 			callback: async () => {
 				await this.openRecallReaderView();
@@ -55,7 +55,7 @@ class ObsidianRecallPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "insight-flow-open-sidebar",
+			id: "dailey-insight-open-sidebar",
 			name: "打开今日推荐侧边栏",
 			callback: async () => {
 				await this.openRecallSidebarView(true);
@@ -63,14 +63,14 @@ class ObsidianRecallPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "insight-flow-sync-now",
+			id: "dailey-insight-sync-now",
 			name: "立即同步笔记",
 			callback: async () => {
 				await this.syncNow();
 			}
 		});
 		this.addCommand({
-			id: "insight-flow-push-active-note",
+			id: "dailey-insight-push-active-note",
 			name: "一键推送当前笔记",
 			callback: async () => {
 				await this.pushActiveNoteNow();
@@ -78,7 +78,7 @@ class ObsidianRecallPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "insight-flow-test-connection",
+			id: "dailey-insight-test-connection",
 			name: "测试服务端连接",
 			callback: async () => {
 				await this.testConnection();
@@ -86,7 +86,7 @@ class ObsidianRecallPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "insight-flow-logout",
+			id: "dailey-insight-logout",
 			name: "退出当前会话",
 			callback: async () => {
 				await this.logout();
@@ -94,7 +94,7 @@ class ObsidianRecallPlugin extends Plugin {
 		});
 
 		this.addCommand({
-			id: "insight-flow-push-history",
+			id: "dailey-insight-push-history",
 			name: "查看推送历史",
 			callback: async () => {
 				await this.viewPushHistory();
@@ -1002,7 +1002,7 @@ class RecallReaderView extends ItemView {
 	async render(): Promise<void> {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.addClass("insight-flow-reader-view");
+		contentEl.addClass("dailey-insight-reader-view");
 		this.applyBottomOverlayOffset(contentEl);
 
 		const items = await this.plugin.getTodayRecallItems();
@@ -1031,46 +1031,46 @@ class RecallReaderView extends ItemView {
 		const current = items[this.currentIndex];
 		const state = this.plugin.getRecallState(current.sourceDate, current.path);
 
-		const shell = contentEl.createDiv({ cls: "insight-flow-reader-shell" });
-		const header = shell.createDiv({ cls: "insight-flow-reader-header" });
+		const shell = contentEl.createDiv({ cls: "dailey-insight-reader-shell" });
+		const header = shell.createDiv({ cls: "dailey-insight-reader-header" });
 		const titleBlock = header.createDiv();
-		titleBlock.createEl("div", { text: "今日推荐", cls: "insight-flow-eyebrow" });
-		titleBlock.createEl("h2", { text: today, cls: "insight-flow-reader-title" });
+		titleBlock.createEl("div", { text: "今日推荐", cls: "dailey-insight-eyebrow" });
+		titleBlock.createEl("h2", { text: today, cls: "dailey-insight-reader-title" });
 
-		const progressBar = shell.createDiv({ cls: "insight-flow-progress" });
-		const progressFill = progressBar.createDiv({ cls: "insight-flow-progress-fill" });
+		const progressBar = shell.createDiv({ cls: "dailey-insight-progress" });
+		const progressFill = progressBar.createDiv({ cls: "dailey-insight-progress-fill" });
 		const progressPercent = items.length === 0 ? 0 : ((this.currentIndex + 1) / items.length) * 100;
 		progressFill.style.width = `${progressPercent}%`;
 		header.createDiv({
-			cls: "insight-flow-progress-meta",
+			cls: "dailey-insight-progress-meta",
 			text: `进度 ${this.currentIndex + 1}/${items.length}`
 		});
 
-		const card = shell.createDiv({ cls: "insight-flow-card" });
-		const cardTop = card.createDiv({ cls: "insight-flow-card-top" });
+		const card = shell.createDiv({ cls: "dailey-insight-card" });
+		const cardTop = card.createDiv({ cls: "dailey-insight-card-top" });
 		const titleWrap = cardTop.createDiv();
-		titleWrap.createEl("h3", { text: current.title, cls: "insight-flow-card-title" });
-		const pathEl = titleWrap.createDiv({ text: current.path, cls: "insight-flow-card-path" });
+		titleWrap.createEl("h3", { text: current.title, cls: "dailey-insight-card-title" });
+		const pathEl = titleWrap.createDiv({ text: current.path, cls: "dailey-insight-card-path" });
 		pathEl.title = current.path;
-		const badgeRow = cardTop.createDiv({ cls: "insight-flow-card-badges" });
+		const badgeRow = cardTop.createDiv({ cls: "dailey-insight-card-badges" });
 		if (state.revisit) {
-			badgeRow.createSpan({ text: "已加入再推荐", cls: "insight-flow-badge insight-flow-badge-accent" });
+			badgeRow.createSpan({ text: "已加入再推荐", cls: "dailey-insight-badge dailey-insight-badge-accent" });
 		} else if (state.snoozed) {
-			badgeRow.createSpan({ text: "稍后再看", cls: "insight-flow-badge" });
+			badgeRow.createSpan({ text: "稍后再看", cls: "dailey-insight-badge" });
 		} else if (state.read) {
-			badgeRow.createSpan({ text: "已读", cls: "insight-flow-badge insight-flow-badge-muted" });
+			badgeRow.createSpan({ text: "已读", cls: "dailey-insight-badge dailey-insight-badge-muted" });
 		}
 
-		const body = card.createDiv({ cls: "insight-flow-card-body markdown-rendered" });
+		const body = card.createDiv({ cls: "dailey-insight-card-body markdown-rendered" });
 		await MarkdownRenderer.render(this.app, current.content, body, current.path, this.plugin);
 
 		if (progress.read >= progress.total) {
-			const completion = card.createDiv({ cls: "insight-flow-completion" });
-			completion.createDiv({ text: "今天的推荐已经处理完了。", cls: "insight-flow-completion-title" });
+			const completion = card.createDiv({ cls: "dailey-insight-completion" });
+			completion.createDiv({ text: "今天的推荐已经处理完了。", cls: "dailey-insight-completion-title" });
 			completion.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
 		}
 
-		const footer = shell.createDiv({ cls: "insight-flow-toolbar" });
+		const footer = shell.createDiv({ cls: "dailey-insight-toolbar" });
 		const prevButton = footer.createEl("button", { text: "上一条" });
 		prevButton.disabled = this.currentIndex <= 0;
 		prevButton.onclick = async () => {
@@ -1161,21 +1161,21 @@ class RecallSidebarView extends ItemView {
 	async render(): Promise<void> {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.addClass("insight-flow-sidebar-view");
+		contentEl.addClass("dailey-insight-sidebar-view");
 
 		const items = await this.plugin.getTodayRecallItems();
 		const progress = this.plugin.getTodayProgress(items);
 
-		const wrap = contentEl.createDiv({ cls: "insight-flow-sidebar-shell" });
-		wrap.createEl("h3", { text: "每日推荐", cls: "insight-flow-sidebar-title" });
+		const wrap = contentEl.createDiv({ cls: "dailey-insight-sidebar-shell" });
+		wrap.createEl("h3", { text: "每日推荐", cls: "dailey-insight-sidebar-title" });
 
-		const stats = wrap.createDiv({ cls: "insight-flow-sidebar-stats" });
+		const stats = wrap.createDiv({ cls: "dailey-insight-sidebar-stats" });
 		stats.createDiv({ text: `今日队列：${progress.total} 条` });
 		stats.createDiv({ text: `已读：${progress.read} 条` });
 		stats.createDiv({ text: `剩余：${progress.remaining} 条` });
 		stats.createDiv({ text: `未来 7 天库存：${this.plugin.getFutureInventoryCount(7)} 条` });
 
-		const actionRow = wrap.createDiv({ cls: "insight-flow-sidebar-actions" });
+		const actionRow = wrap.createDiv({ cls: "dailey-insight-sidebar-actions" });
 		const openButton = actionRow.createEl("button", { text: "打开今日推荐" });
 		openButton.addClass("mod-cta");
 		openButton.onclick = async () => {
@@ -1188,22 +1188,22 @@ class RecallSidebarView extends ItemView {
 		};
 
 		if (items.length === 0) {
-			wrap.createDiv({ text: "今天还没有可阅读的推荐内容。", cls: "insight-flow-sidebar-empty" });
+			wrap.createDiv({ text: "今天还没有可阅读的推荐内容。", cls: "dailey-insight-sidebar-empty" });
 			return;
 		}
 
-		const list = wrap.createDiv({ cls: "insight-flow-sidebar-list" });
+		const list = wrap.createDiv({ cls: "dailey-insight-sidebar-list" });
 		for (const item of items) {
 			const state = this.plugin.getRecallState(item.sourceDate, item.path);
-			const row = list.createDiv({ cls: "insight-flow-sidebar-item" });
+			const row = list.createDiv({ cls: "dailey-insight-sidebar-item" });
 			row.tabIndex = 0;
-			const top = row.createDiv({ cls: "insight-flow-sidebar-item-top" });
-			top.createSpan({ text: item.title, cls: "insight-flow-sidebar-item-title" });
+			const top = row.createDiv({ cls: "dailey-insight-sidebar-item-top" });
+			top.createSpan({ text: item.title, cls: "dailey-insight-sidebar-item-title" });
 			top.createSpan({
 				text: state.read ? "已读" : state.snoozed ? "稍后" : "未读",
-				cls: "insight-flow-sidebar-item-state"
+				cls: "dailey-insight-sidebar-item-state"
 			});
-			row.createDiv({ text: item.path, cls: "insight-flow-sidebar-item-path" });
+			row.createDiv({ text: item.path, cls: "dailey-insight-sidebar-item-path" });
 			const openItem = async (): Promise<void> => {
 				this.plugin.setActiveRecallPath(item.path);
 				await this.plugin.openRecallReaderView();
@@ -1222,11 +1222,11 @@ class RecallSidebarView extends ItemView {
 }
 
 function renderRecallEmptyState(containerEl: HTMLElement, plugin: ObsidianRecallPlugin, message: string): void {
-	const shell = containerEl.createDiv({ cls: "insight-flow-reader-shell" });
-	const card = shell.createDiv({ cls: "insight-flow-card insight-flow-card-empty" });
-	card.createEl("h3", { text: "今日推荐", cls: "insight-flow-card-title" });
-	card.createDiv({ text: message, cls: "insight-flow-empty-text" });
-	const actions = card.createDiv({ cls: "insight-flow-toolbar" });
+	const shell = containerEl.createDiv({ cls: "dailey-insight-reader-shell" });
+	const card = shell.createDiv({ cls: "dailey-insight-card dailey-insight-card-empty" });
+	card.createEl("h3", { text: "今日推荐", cls: "dailey-insight-card-title" });
+	card.createDiv({ text: message, cls: "dailey-insight-empty-text" });
+	const actions = card.createDiv({ cls: "dailey-insight-toolbar" });
 	const syncButton = actions.createEl("button", { text: "立即补齐队列" });
 	syncButton.addClass("mod-cta");
 	syncButton.onclick = async () => {
@@ -1243,7 +1243,7 @@ class RecallSettingTab extends PluginSettingTab {
 	display(): void {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.addClass("insight-flow-settings");
+		containerEl.addClass("dailey-insight-settings");
 		containerEl.createEl("h2", { text: "Dailey Insight 设置" });
 		containerEl.createEl("p", {
 			text: "用于从本地抽取笔记并预提交到服务端，按计划生成每日推荐（RSS 可订阅）。"
@@ -1263,7 +1263,7 @@ class RecallSettingTab extends PluginSettingTab {
 			this.plugin.settings.debugLastError ? `最近错误：${this.plugin.settings.debugLastError}` : "最近错误：无"
 		];
 		containerEl.createEl("div", {
-			cls: "insight-flow-settings-summary",
+			cls: "dailey-insight-settings-summary",
 			text: statusLines.join("\n")
 		});
 
@@ -1331,7 +1331,7 @@ class RecallSettingTab extends PluginSettingTab {
 						.setPlaceholder("（尚未获取 RSS 地址）")
 						.setValue(this.plugin.settings.rssUrl.trim())
 						.setDisabled(true);
-					text.inputEl.addClass("insight-flow-rss-input");
+					text.inputEl.addClass("dailey-insight-rss-input");
 				})
 				.addButton((button) =>
 					button
@@ -1436,7 +1436,7 @@ class RecallSettingTab extends PluginSettingTab {
 					"每次打开 Obsidian 时，会把未来 N 天的推荐库存补齐到服务端（1-30 天）。即使你后续几天不打开 Obsidian，服务器也可按计划持续推送。"
 			)
 			.addButton((button) => {
-				button.buttonEl.addClass("insight-flow-step-btn");
+				button.buttonEl.addClass("dailey-insight-step-btn");
 				return button.setButtonText("-").onClick(async () => {
 					this.plugin.settings.queueWindowDays = Math.max(1, (this.plugin.settings.queueWindowDays || 7) - 1);
 					await this.plugin.saveSettings();
@@ -1444,7 +1444,7 @@ class RecallSettingTab extends PluginSettingTab {
 				});
 			})
 			.addText((text) => {
-				text.inputEl.addClass("insight-flow-step-input");
+				text.inputEl.addClass("dailey-insight-step-input");
 				return text.setValue(String(this.plugin.settings.queueWindowDays || 7)).onChange(async (value) => {
 					const parsed = Number.parseInt(value, 10);
 					this.plugin.settings.queueWindowDays = Number.isFinite(parsed)
@@ -1454,7 +1454,7 @@ class RecallSettingTab extends PluginSettingTab {
 				});
 			})
 			.addButton((button) => {
-				button.buttonEl.addClass("insight-flow-step-btn");
+				button.buttonEl.addClass("dailey-insight-step-btn");
 				return button.setButtonText("+").onClick(async () => {
 					this.plugin.settings.queueWindowDays = Math.min(30, (this.plugin.settings.queueWindowDays || 7) + 1);
 					await this.plugin.saveSettings();
@@ -1465,7 +1465,7 @@ class RecallSettingTab extends PluginSettingTab {
 			.setName("每日推送条数")
 			.setDesc("每天推送多少条，范围 1-20")
 			.addButton((button) => {
-				button.buttonEl.addClass("insight-flow-step-btn");
+				button.buttonEl.addClass("dailey-insight-step-btn");
 				return button.setButtonText("-").onClick(async () => {
 					this.plugin.settings.dailyPushCount = Math.max(1, (this.plugin.settings.dailyPushCount || 1) - 1);
 					await this.plugin.saveSettings();
@@ -1473,7 +1473,7 @@ class RecallSettingTab extends PluginSettingTab {
 				});
 			})
 			.addText((text) => {
-				text.inputEl.addClass("insight-flow-step-input");
+				text.inputEl.addClass("dailey-insight-step-input");
 				return text.setValue(String(this.plugin.settings.dailyPushCount)).onChange(async (value) => {
 					const parsed = Number.parseInt(value, 10);
 					this.plugin.settings.dailyPushCount = Number.isFinite(parsed)
@@ -1483,7 +1483,7 @@ class RecallSettingTab extends PluginSettingTab {
 				});
 			})
 			.addButton((button) => {
-				button.buttonEl.addClass("insight-flow-step-btn");
+				button.buttonEl.addClass("dailey-insight-step-btn");
 				return button.setButtonText("+").onClick(async () => {
 					this.plugin.settings.dailyPushCount = Math.min(20, (this.plugin.settings.dailyPushCount || 1) + 1);
 					await this.plugin.saveSettings();
@@ -1570,7 +1570,7 @@ class PushHistoryModal extends Modal {
 	onOpen(): void {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.addClass("insight-flow-history-modal");
+		contentEl.addClass("dailey-insight-history-modal");
 		contentEl.createEl("h3", { text: "推送历史（最近 20 条）" });
 
 		if (this.items.length === 0) {
@@ -1579,15 +1579,15 @@ class PushHistoryModal extends Modal {
 		}
 
 		for (const item of this.items) {
-			const row = contentEl.createDiv({ cls: "insight-flow-history-item" });
+			const row = contentEl.createDiv({ cls: "dailey-insight-history-item" });
 			row.createDiv({ text: item.note_title || "(无标题)" });
-			row.createDiv({ text: item.note_path, cls: "insight-flow-history-path" });
+			row.createDiv({ text: item.note_path, cls: "dailey-insight-history-path" });
 			row.createDiv({
 				text: `推送时间：${formatDateTime(item.pushed_at)}`,
-				cls: "insight-flow-history-time"
+				cls: "dailey-insight-history-time"
 			});
 
-			const buttonRow = row.createDiv({ cls: "insight-flow-history-actions" });
+			const buttonRow = row.createDiv({ cls: "dailey-insight-history-actions" });
 			const detailButton = buttonRow.createEl("button", { text: "查看详情" });
 			detailButton.onclick = async () => {
 				try {
@@ -1616,14 +1616,14 @@ class DetailModal extends Modal {
 	onOpen(): void {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.addClass("insight-flow-history-modal");
+		contentEl.addClass("dailey-insight-history-modal");
 		contentEl.createEl("h3", { text: this.titleText });
-		contentEl.createEl("p", { text: this.pathText, cls: "insight-flow-history-path" });
+		contentEl.createEl("p", { text: this.pathText, cls: "dailey-insight-history-path" });
 		contentEl.createEl("p", {
 			text: `推送时间：${formatDateTime(this.pushedAt)}`,
-			cls: "insight-flow-history-time"
+			cls: "dailey-insight-history-time"
 		});
-		contentEl.createEl("pre", { text: this.bodyText, cls: "insight-flow-history-body" });
+		contentEl.createEl("pre", { text: this.bodyText, cls: "dailey-insight-history-body" });
 	}
 }
 
@@ -1635,10 +1635,10 @@ class PairCodeExportModal extends Modal {
 	onOpen(): void {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.addClass("insight-flow-history-modal");
+		contentEl.addClass("dailey-insight-history-modal");
 		contentEl.createEl("h3", { text: "设备配对码" });
 		const desc = contentEl.createEl("p", { text: "在另一台设备粘贴该配对码，即可共用同一用户身份。" });
-		desc.addClass("insight-flow-history-path");
+		desc.addClass("dailey-insight-history-path");
 
 		const input = contentEl.createEl("textarea");
 		input.value = this.pairCode;
@@ -1647,7 +1647,7 @@ class PairCodeExportModal extends Modal {
 		input.style.minHeight = "100px";
 		input.style.resize = "vertical";
 
-		const row = contentEl.createDiv({ cls: "insight-flow-history-actions" });
+		const row = contentEl.createDiv({ cls: "dailey-insight-history-actions" });
 		const copyButton = row.createEl("button", { text: "复制配对码" });
 		copyButton.onclick = async () => {
 			await navigator.clipboard.writeText(this.pairCode);
@@ -1664,7 +1664,7 @@ class PairCodeImportModal extends Modal {
 	onOpen(): void {
 		const { contentEl } = this;
 		contentEl.empty();
-		contentEl.addClass("insight-flow-history-modal");
+		contentEl.addClass("dailey-insight-history-modal");
 		contentEl.createEl("h3", { text: "导入配对码" });
 
 		const input = contentEl.createEl("textarea");
@@ -1673,7 +1673,7 @@ class PairCodeImportModal extends Modal {
 		input.style.minHeight = "100px";
 		input.style.resize = "vertical";
 
-		const row = contentEl.createDiv({ cls: "insight-flow-history-actions" });
+		const row = contentEl.createDiv({ cls: "dailey-insight-history-actions" });
 		const submit = row.createEl("button", { text: "导入并同步配置" });
 		submit.onclick = async () => {
 			try {

@@ -74,7 +74,7 @@ Dailey Insight 是一个 Obsidian 社区插件。它会在你打开 Obsidian 时
 ### 插件标识
 
 - 社区插件显示名：`Dailey Insight`
-- `manifest.json` 插件 ID：`insight-flow`
+- `manifest.json` 插件 ID：`dailey-insight`
 
 ## 本地开发
 
@@ -102,7 +102,7 @@ npm run build
 
 调试目录示例：
 
-- `/Users/zhuhui/project/document/.obsidian/plugins/insight-flow/`
+- `/Users/zhuhui/project/document/.obsidian/plugins/dailey-insight/`
 
 ## 发布到 Obsidian 社区市场
 
