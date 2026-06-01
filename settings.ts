@@ -14,7 +14,6 @@ export interface RecallSettings {
 	cuboxTags: string[];
 	syncMode: "local";
 	excludedFolders: string[];
-	minNoteLength: number;
 	lastSyncAt: string;
 	lastSyncCount: number;
 	queueCoveredDays: number;
@@ -57,7 +56,6 @@ const DEFAULT_SETTINGS: RecallSettings = {
 	cuboxTags: [],
 	syncMode: "local",
 	excludedFolders: [],
-	minNoteLength: 50,
 	lastSyncAt: "",
 	lastSyncCount: 0,
 	queueCoveredDays: 0,

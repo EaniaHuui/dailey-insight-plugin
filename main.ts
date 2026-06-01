@@ -175,7 +175,7 @@ class ObsidianRecallPlugin extends Plugin {
 				sync_mode: "local",
 				daily_push_count: this.settings.dailyPushCount,
 				excluded_folders: this.settings.excludedFolders,
-				min_note_length: this.settings.minNoteLength
+				min_note_length: 0
 			});
 			this.settings.pushTime = response.push_time;
 			this.settings.timezone = response.timezone;
@@ -192,7 +192,6 @@ class ObsidianRecallPlugin extends Plugin {
 				this.settings.syncMode = "local";
 				this.settings.dailyPushCount = response.daily_push_count || this.settings.dailyPushCount;
 				this.settings.excludedFolders = response.excluded_folders;
-			this.settings.minNoteLength = response.min_note_length;
 			await this.saveSettings();
 			new Notice("已保存");
 		} catch (error) {
@@ -300,8 +299,8 @@ class ObsidianRecallPlugin extends Plugin {
 		}
 
 		const content = await this.app.vault.cachedRead(file);
-		if (content.trim().length < this.settings.minNoteLength) {
-			new Notice(`当前笔记字数不足 ${this.settings.minNoteLength}，无法推送`);
+		if (!content.trim()) {
+			new Notice("当前笔记内容为空，无法推送");
 			return;
 		}
 
@@ -510,7 +509,6 @@ class ObsidianRecallPlugin extends Plugin {
 			this.settings.syncMode = "local";
 			this.settings.dailyPushCount = remote.daily_push_count || this.settings.dailyPushCount;
 			this.settings.excludedFolders = remote.excluded_folders ?? this.settings.excludedFolders;
-			this.settings.minNoteLength = remote.min_note_length || this.settings.minNoteLength;
 			if (this.shouldReplaceSecret(this.settings.cuboxApiUrl, remote.cubox_api_url)) {
 				this.settings.cuboxApiUrl = remote.cubox_api_url;
 			}
@@ -550,7 +548,7 @@ class ObsidianRecallPlugin extends Plugin {
 			}
 
 			const content = await this.app.vault.cachedRead(file);
-			if (content.trim().length < this.settings.minNoteLength) {
+			if (!content.trim()) {
 				continue;
 			}
 
@@ -578,7 +576,7 @@ class ObsidianRecallPlugin extends Plugin {
 			sync_mode: "local",
 			daily_push_count: this.settings.dailyPushCount,
 			excluded_folders: this.settings.excludedFolders,
-			min_note_length: this.settings.minNoteLength
+			min_note_length: 0
 		});
 		this.settings.pushTime = response.push_time;
 		this.settings.timezone = response.timezone;
@@ -595,7 +593,6 @@ class ObsidianRecallPlugin extends Plugin {
 		this.settings.syncMode = "local";
 		this.settings.dailyPushCount = response.daily_push_count || this.settings.dailyPushCount;
 		this.settings.excludedFolders = response.excluded_folders;
-		this.settings.minNoteLength = response.min_note_length;
 	}
 
 	private pickLocalRecallNote(notes: LocalNote[]): LocalNote | null {
@@ -1502,17 +1499,6 @@ class RecallSettingTab extends PluginSettingTab {
 						.split(",")
 						.map((item) => item.trim())
 						.filter(Boolean);
-					await this.plugin.saveSettings();
-				})
-			);
-
-		new Setting(containerEl)
-			.setName("最短字数")
-			.setDesc("短于这个字数的笔记不会参与同步")
-			.addText((text) =>
-				text.setValue(String(this.plugin.settings.minNoteLength)).onChange(async (value) => {
-					const parsed = Number.parseInt(value, 10);
-					this.plugin.settings.minNoteLength = Number.isFinite(parsed) && parsed > 0 ? parsed : 50;
 					await this.plugin.saveSettings();
 				})
 			);
