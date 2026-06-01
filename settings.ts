@@ -42,7 +42,7 @@ export interface RecallItemState {
 }
 
 const DEFAULT_SETTINGS: RecallSettings = {
-	serverUrl: "",
+	serverUrl: "https://recall.aieania.tech",
 	clientId: "",
 	token: "",
 	pushTime: "08:00",

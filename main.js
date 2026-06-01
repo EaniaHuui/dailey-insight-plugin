@@ -127,7 +127,7 @@ async function sha256Hex(input) {
 
 // settings.ts
 var DEFAULT_SETTINGS = {
-  serverUrl: "",
+  serverUrl: "https://recall.aieania.tech",
   clientId: "",
   token: "",
   pushTime: "08:00",
