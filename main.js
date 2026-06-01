@@ -205,14 +205,14 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       });
       this.addCommand({
         id: "insight-flow-open-today",
-        name: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E",
+        name: "\u6253\u5F00\u4ECA\u65E5\u63A8\u8350",
         callback: async () => {
           await this.openRecallReaderView();
         }
       });
       this.addCommand({
         id: "insight-flow-open-sidebar",
-        name: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E\u4FA7\u8FB9\u680F",
+        name: "\u6253\u5F00\u4ECA\u65E5\u63A8\u8350\u4FA7\u8FB9\u680F",
         callback: async () => {
           await this.openRecallSidebarView(true);
         }
@@ -459,7 +459,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
     await this.recordDebug("sync:local:start");
     const queueDays = Math.max(1, Math.min(30, this.settings.queueWindowDays || 7));
     this.settings.queueWindowDays = queueDays;
-    new import_obsidian2.Notice(`\u5F00\u59CB\u8865\u9F50\u672A\u6765 ${queueDays} \u5929\u56DE\u987E\u961F\u5217`);
+    new import_obsidian2.Notice(`\u5F00\u59CB\u8865\u9F50\u672A\u6765 ${queueDays} \u5929\u63A8\u8350\u961F\u5217`);
     const localNotes = await this.collectLocalNotes();
     await this.recordDebug(`sync:local:collected:${localNotes.length}`);
     if (localNotes.length === 0) {
@@ -1041,7 +1041,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     return RECALL_MAIN_VIEW;
   }
   getDisplayText() {
-    return "\u4ECA\u65E5\u56DE\u987E";
+    return "\u4ECA\u65E5\u63A8\u8350";
   }
   getIcon() {
     return "history";
@@ -1058,7 +1058,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     const progress = this.plugin.getTodayProgress(items);
     const firstUnread = this.plugin.findNextUnreadIndex(items);
     if (items.length === 0) {
-      renderRecallEmptyState(contentEl, this.plugin, "\u4ECA\u5929\u8FD8\u6CA1\u6709\u53EF\u9605\u8BFB\u7684\u56DE\u987E\u5185\u5BB9\u3002");
+      renderRecallEmptyState(contentEl, this.plugin, "\u4ECA\u5929\u8FD8\u6CA1\u6709\u53EF\u9605\u8BFB\u7684\u63A8\u8350\u5185\u5BB9\u3002");
       return;
     }
     const focusedPath = this.plugin.consumeActiveRecallPath();
@@ -1081,7 +1081,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     const shell = contentEl.createDiv({ cls: "insight-flow-reader-shell" });
     const header = shell.createDiv({ cls: "insight-flow-reader-header" });
     const titleBlock = header.createDiv();
-    titleBlock.createEl("div", { text: "\u4ECA\u65E5\u56DE\u987E", cls: "insight-flow-eyebrow" });
+    titleBlock.createEl("div", { text: "\u4ECA\u65E5\u63A8\u8350", cls: "insight-flow-eyebrow" });
     titleBlock.createEl("h2", { text: today, cls: "insight-flow-reader-title" });
     const progressBar = shell.createDiv({ cls: "insight-flow-progress" });
     const progressFill = progressBar.createDiv({ cls: "insight-flow-progress-fill" });
@@ -1099,7 +1099,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     pathEl.title = current.path;
     const badgeRow = cardTop.createDiv({ cls: "insight-flow-card-badges" });
     if (state.revisit) {
-      badgeRow.createSpan({ text: "\u5DF2\u52A0\u5165\u518D\u56DE\u987E", cls: "insight-flow-badge insight-flow-badge-accent" });
+      badgeRow.createSpan({ text: "\u5DF2\u52A0\u5165\u518D\u63A8\u8350", cls: "insight-flow-badge insight-flow-badge-accent" });
     } else if (state.snoozed) {
       badgeRow.createSpan({ text: "\u7A0D\u540E\u518D\u770B", cls: "insight-flow-badge" });
     } else if (state.read) {
@@ -1109,7 +1109,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
     await import_obsidian2.MarkdownRenderer.render(this.app, current.content, body, current.path, this.plugin);
     if (progress.read >= progress.total) {
       const completion = card.createDiv({ cls: "insight-flow-completion" });
-      completion.createDiv({ text: "\u4ECA\u5929\u7684\u56DE\u987E\u5DF2\u7ECF\u5904\u7406\u5B8C\u4E86\u3002", cls: "insight-flow-completion-title" });
+      completion.createDiv({ text: "\u4ECA\u5929\u7684\u63A8\u8350\u5DF2\u7ECF\u5904\u7406\u5B8C\u4E86\u3002", cls: "insight-flow-completion-title" });
       completion.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58 ${this.plugin.getFutureInventoryCount(7)} \u6761` });
     }
     const footer = shell.createDiv({ cls: "insight-flow-toolbar" });
@@ -1147,7 +1147,7 @@ var RecallReaderView = class extends import_obsidian2.ItemView {
       });
       await this.render();
     };
-    const revisitButton = footer.createEl("button", { text: state.revisit ? "\u5DF2\u52A0\u5165\u518D\u56DE\u987E" : "\u52A0\u5165\u518D\u56DE\u987E" });
+    const revisitButton = footer.createEl("button", { text: state.revisit ? "\u5DF2\u52A0\u5165\u518D\u63A8\u8350" : "\u52A0\u5165\u518D\u63A8\u8350" });
     revisitButton.onclick = async () => {
       await this.plugin.updateRecallState(current.sourceDate, current.path, {
         revisit: !state.revisit
@@ -1182,7 +1182,7 @@ var RecallSidebarView = class extends import_obsidian2.ItemView {
     return RECALL_SIDEBAR_VIEW;
   }
   getDisplayText() {
-    return "\u56DE\u987E\u961F\u5217";
+    return "\u63A8\u8350\u961F\u5217";
   }
   getIcon() {
     return "panel-right-open";
@@ -1197,14 +1197,14 @@ var RecallSidebarView = class extends import_obsidian2.ItemView {
     const items = await this.plugin.getTodayRecallItems();
     const progress = this.plugin.getTodayProgress(items);
     const wrap = contentEl.createDiv({ cls: "insight-flow-sidebar-shell" });
-    wrap.createEl("h3", { text: "\u6BCF\u65E5\u56DE\u987E", cls: "insight-flow-sidebar-title" });
+    wrap.createEl("h3", { text: "\u6BCF\u65E5\u63A8\u8350", cls: "insight-flow-sidebar-title" });
     const stats = wrap.createDiv({ cls: "insight-flow-sidebar-stats" });
     stats.createDiv({ text: `\u4ECA\u65E5\u961F\u5217\uFF1A${progress.total} \u6761` });
     stats.createDiv({ text: `\u5DF2\u8BFB\uFF1A${progress.read} \u6761` });
     stats.createDiv({ text: `\u5269\u4F59\uFF1A${progress.remaining} \u6761` });
     stats.createDiv({ text: `\u672A\u6765 7 \u5929\u5E93\u5B58\uFF1A${this.plugin.getFutureInventoryCount(7)} \u6761` });
     const actionRow = wrap.createDiv({ cls: "insight-flow-sidebar-actions" });
-    const openButton = actionRow.createEl("button", { text: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E" });
+    const openButton = actionRow.createEl("button", { text: "\u6253\u5F00\u4ECA\u65E5\u63A8\u8350" });
     openButton.addClass("mod-cta");
     openButton.onclick = async () => {
       await this.plugin.openRecallReaderView();
@@ -1214,7 +1214,7 @@ var RecallSidebarView = class extends import_obsidian2.ItemView {
       await this.plugin.refreshRecallViews();
     };
     if (items.length === 0) {
-      wrap.createDiv({ text: "\u4ECA\u5929\u8FD8\u6CA1\u6709\u53EF\u9605\u8BFB\u7684\u56DE\u987E\u5185\u5BB9\u3002", cls: "insight-flow-sidebar-empty" });
+      wrap.createDiv({ text: "\u4ECA\u5929\u8FD8\u6CA1\u6709\u53EF\u9605\u8BFB\u7684\u63A8\u8350\u5185\u5BB9\u3002", cls: "insight-flow-sidebar-empty" });
       return;
     }
     const list = wrap.createDiv({ cls: "insight-flow-sidebar-list" });
@@ -1248,7 +1248,7 @@ var RecallSidebarView = class extends import_obsidian2.ItemView {
 function renderRecallEmptyState(containerEl, plugin, message) {
   const shell = containerEl.createDiv({ cls: "insight-flow-reader-shell" });
   const card = shell.createDiv({ cls: "insight-flow-card insight-flow-card-empty" });
-  card.createEl("h3", { text: "\u4ECA\u65E5\u56DE\u987E", cls: "insight-flow-card-title" });
+  card.createEl("h3", { text: "\u4ECA\u65E5\u63A8\u8350", cls: "insight-flow-card-title" });
   card.createDiv({ text: message, cls: "insight-flow-empty-text" });
   const actions = card.createDiv({ cls: "insight-flow-toolbar" });
   const syncButton = actions.createEl("button", { text: "\u7ACB\u5373\u8865\u9F50\u961F\u5217" });
@@ -1269,7 +1269,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
     containerEl.addClass("insight-flow-settings");
     containerEl.createEl("h2", { text: "Insight Flow \u8BBE\u7F6E" });
     containerEl.createEl("p", {
-      text: "\u7528\u4E8E\u4ECE\u672C\u5730\u62BD\u53D6\u7B14\u8BB0\u5E76\u9884\u63D0\u4EA4\u5230\u670D\u52A1\u7AEF\uFF0C\u6309\u8BA1\u5212\u751F\u6210\u6BCF\u65E5\u56DE\u987E\uFF08RSS \u53EF\u8BA2\u9605\uFF09\u3002"
+      text: "\u7528\u4E8E\u4ECE\u672C\u5730\u62BD\u53D6\u7B14\u8BB0\u5E76\u9884\u63D0\u4EA4\u5230\u670D\u52A1\u7AEF\uFF0C\u6309\u8BA1\u5212\u751F\u6210\u6BCF\u65E5\u63A8\u8350\uFF08RSS \u53EF\u8BA2\u9605\uFF09\u3002"
     });
     const statusLines = [
       this.plugin.settings.token ? "\u767B\u5F55\u72B6\u6001\uFF1A\u5DF2\u767B\u5F55" : "\u767B\u5F55\u72B6\u6001\uFF1A\u672A\u767B\u5F55",
@@ -1340,7 +1340,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
         })
       );
     }
-    new import_obsidian2.Setting(containerEl).setName("\u542F\u7528 Cubox \u63A8\u9001").setDesc("\u5F00\u542F\u540E\u4F1A\u628A\u56DE\u987E\u5185\u5BB9\u901A\u8FC7 Cubox API \u5199\u5165\u4F60\u7684 Cubox").addToggle(
+    new import_obsidian2.Setting(containerEl).setName("\u542F\u7528 Cubox \u63A8\u9001").setDesc("\u5F00\u542F\u540E\u4F1A\u628A\u63A8\u8350\u5185\u5BB9\u901A\u8FC7 Cubox API \u5199\u5165\u4F60\u7684 Cubox").addToggle(
       (toggle) => toggle.setValue(this.plugin.settings.enableCubox).onChange(async (value) => {
         this.plugin.settings.enableCubox = value;
         await this.plugin.saveSettings();
@@ -1361,7 +1361,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
           await this.plugin.saveSettings();
         })
       );
-      new import_obsidian2.Setting(containerEl).setName("Cubox \u6807\u7B7E").setDesc("\u53EF\u9009\uFF0C\u9017\u53F7\u5206\u9694\uFF0C\u4F8B\u5982 Obsidian, \u56DE\u987E").addText(
+      new import_obsidian2.Setting(containerEl).setName("Cubox \u6807\u7B7E").setDesc("\u53EF\u9009\uFF0C\u9017\u53F7\u5206\u9694\uFF0C\u4F8B\u5982 Obsidian, \u63A8\u8350").addText(
         (text) => text.setValue(this.plugin.settings.cuboxTags.join(", ")).onChange(async (value) => {
           this.plugin.settings.cuboxTags = value.split(",").map((item) => item.trim()).filter(Boolean);
           await this.plugin.saveSettings();
@@ -1382,7 +1382,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
       })
     );
     new import_obsidian2.Setting(containerEl).setName("\u9884\u63D0\u4EA4\u5929\u6570").setDesc(
-      "\u6BCF\u6B21\u6253\u5F00 Obsidian \u65F6\uFF0C\u4F1A\u628A\u672A\u6765 N \u5929\u7684\u56DE\u987E\u5E93\u5B58\u8865\u9F50\u5230\u670D\u52A1\u7AEF\uFF081-30 \u5929\uFF09\u3002\u5373\u4F7F\u4F60\u540E\u7EED\u51E0\u5929\u4E0D\u6253\u5F00 Obsidian\uFF0C\u670D\u52A1\u5668\u4E5F\u53EF\u6309\u8BA1\u5212\u6301\u7EED\u63A8\u9001\u3002"
+      "\u6BCF\u6B21\u6253\u5F00 Obsidian \u65F6\uFF0C\u4F1A\u628A\u672A\u6765 N \u5929\u7684\u63A8\u8350\u5E93\u5B58\u8865\u9F50\u5230\u670D\u52A1\u7AEF\uFF081-30 \u5929\uFF09\u3002\u5373\u4F7F\u4F60\u540E\u7EED\u51E0\u5929\u4E0D\u6253\u5F00 Obsidian\uFF0C\u670D\u52A1\u5668\u4E5F\u53EF\u6309\u8BA1\u5212\u6301\u7EED\u63A8\u9001\u3002"
     ).addButton((button) => {
       button.buttonEl.addClass("insight-flow-step-btn");
       return button.setButtonText("-").onClick(async () => {
