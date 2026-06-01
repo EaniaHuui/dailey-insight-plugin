@@ -145,7 +145,6 @@ var DEFAULT_SETTINGS = {
   cuboxTags: [],
   syncMode: "local",
   excludedFolders: [],
-  minNoteLength: 50,
   lastSyncAt: "",
   lastSyncCount: 0,
   queueCoveredDays: 0,
@@ -189,7 +188,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       await this.recordDebug("onload:start");
       this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
       this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
-      this.addRibbonIcon("history", "Obsidian \u6BCF\u65E5\u56DE\u987E", async () => {
+      this.addRibbonIcon("history", "Insight Flow", async () => {
         await this.openRecallReaderView();
       });
       this.addRibbonIcon("rocket", "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0", async () => {
@@ -197,7 +196,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       });
       this.addCommand({
         id: "obsidian-recall-clear-token",
-        name: "\u6E05\u7A7A Obsidian \u6BCF\u65E5\u56DE\u987E Token",
+        name: "\u6E05\u7A7A Insight Flow Token",
         callback: async () => {
           this.settings.token = "";
           await this.saveSettings();
@@ -259,12 +258,12 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
         void this.runStartupFlow();
       });
     } catch (error) {
-      console.error("Obsidian \u6BCF\u65E5\u56DE\u987E\u52A0\u8F7D\u5931\u8D25", error);
+      console.error("Insight Flow \u52A0\u8F7D\u5931\u8D25", error);
       try {
         await this.recordDebug(`onload:error:${formatError(error)}`, true);
       } catch (e) {
       }
-      new import_obsidian2.Notice(`Obsidian \u6BCF\u65E5\u56DE\u987E\u52A0\u8F7D\u5931\u8D25\uFF1A${formatError(error)}`);
+      new import_obsidian2.Notice(`Insight Flow \u52A0\u8F7D\u5931\u8D25\uFF1A${formatError(error)}`);
     }
   }
   onunload() {
@@ -316,7 +315,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
         sync_mode: "local",
         daily_push_count: this.settings.dailyPushCount,
         excluded_folders: this.settings.excludedFolders,
-        min_note_length: this.settings.minNoteLength
+        min_note_length: 0
       });
       this.settings.pushTime = response.push_time;
       this.settings.timezone = response.timezone;
@@ -333,7 +332,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       this.settings.syncMode = "local";
       this.settings.dailyPushCount = response.daily_push_count || this.settings.dailyPushCount;
       this.settings.excludedFolders = response.excluded_folders;
-      this.settings.minNoteLength = response.min_note_length;
       await this.saveSettings();
       new import_obsidian2.Notice("\u5DF2\u4FDD\u5B58");
     } catch (error) {
@@ -430,8 +428,8 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       return;
     }
     const content = await this.app.vault.cachedRead(file);
-    if (content.trim().length < this.settings.minNoteLength) {
-      new import_obsidian2.Notice(`\u5F53\u524D\u7B14\u8BB0\u5B57\u6570\u4E0D\u8DB3 ${this.settings.minNoteLength}\uFF0C\u65E0\u6CD5\u63A8\u9001`);
+    if (!content.trim()) {
+      new import_obsidian2.Notice("\u5F53\u524D\u7B14\u8BB0\u5185\u5BB9\u4E3A\u7A7A\uFF0C\u65E0\u6CD5\u63A8\u9001");
       return;
     }
     try {
@@ -530,7 +528,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       }
     } catch (error) {
       await this.recordDebug(`startup:error:${formatError(error)}`, true);
-      console.error("Obsidian \u6BCF\u65E5\u56DE\u987E startup flow failed", error);
+      console.error("Insight Flow startup flow failed", error);
     }
   }
   ensureClientID() {
@@ -620,7 +618,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       this.settings.syncMode = "local";
       this.settings.dailyPushCount = remote.daily_push_count || this.settings.dailyPushCount;
       this.settings.excludedFolders = (_d = remote.excluded_folders) != null ? _d : this.settings.excludedFolders;
-      this.settings.minNoteLength = remote.min_note_length || this.settings.minNoteLength;
       if (this.shouldReplaceSecret(this.settings.cuboxApiUrl, remote.cubox_api_url)) {
         this.settings.cuboxApiUrl = remote.cubox_api_url;
       }
@@ -656,7 +653,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
         continue;
       }
       const content = await this.app.vault.cachedRead(file);
-      if (content.trim().length < this.settings.minNoteLength) {
+      if (!content.trim()) {
         continue;
       }
       notes.push({
@@ -682,7 +679,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       sync_mode: "local",
       daily_push_count: this.settings.dailyPushCount,
       excluded_folders: this.settings.excludedFolders,
-      min_note_length: this.settings.minNoteLength
+      min_note_length: 0
     });
     this.settings.pushTime = response.push_time;
     this.settings.timezone = response.timezone;
@@ -699,7 +696,6 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
     this.settings.syncMode = "local";
     this.settings.dailyPushCount = response.daily_push_count || this.settings.dailyPushCount;
     this.settings.excludedFolders = response.excluded_folders;
-    this.settings.minNoteLength = response.min_note_length;
   }
   pickLocalRecallNote(notes) {
     const history = this.normalizePushedHistory([...this.settings.pushedHistory, ...this.settings.queuedHistory]);
@@ -1271,7 +1267,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
     containerEl.addClass("obsidian-recall-settings");
-    containerEl.createEl("h2", { text: "Obsidian \u6BCF\u65E5\u56DE\u987E \u8BBE\u7F6E" });
+    containerEl.createEl("h2", { text: "Insight Flow \u8BBE\u7F6E" });
     containerEl.createEl("p", {
       text: "\u7528\u4E8E\u4ECE\u672C\u5730\u62BD\u53D6\u7B14\u8BB0\u5E76\u9884\u63D0\u4EA4\u5230\u670D\u52A1\u7AEF\uFF0C\u6309\u8BA1\u5212\u751F\u6210\u6BCF\u65E5\u56DE\u987E\uFF08RSS \u53EF\u8BA2\u9605\uFF09\u3002"
     });
@@ -1290,7 +1286,7 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
       cls: "obsidian-recall-settings-summary",
       text: statusLines.join("\n")
     });
-    new import_obsidian2.Setting(containerEl).setName("\u670D\u52A1\u5668\u5730\u5740").setDesc("Obsidian \u6BCF\u65E5\u56DE\u987E \u670D\u52A1\u7AEF\u5730\u5740").addText(
+    new import_obsidian2.Setting(containerEl).setName("\u670D\u52A1\u5668\u5730\u5740").setDesc("Insight Flow \u670D\u52A1\u7AEF\u5730\u5740").addText(
       (text) => text.setPlaceholder("https://your-recall-server.example").setValue(this.plugin.settings.serverUrl).onChange(async (value) => {
         this.plugin.settings.serverUrl = value.trim();
         await this.plugin.saveSettings();
@@ -1434,13 +1430,6 @@ var RecallSettingTab = class extends import_obsidian2.PluginSettingTab {
     new import_obsidian2.Setting(containerEl).setName("\u6392\u9664\u6587\u4EF6\u5939").setDesc("\u7528\u9017\u53F7\u5206\u9694\u591A\u4E2A\u6587\u4EF6\u5939\u524D\u7F00\uFF0C\u4F8B\u5982 Templates, Daily Notes").addText(
       (text) => text.setValue(this.plugin.settings.excludedFolders.join(", ")).onChange(async (value) => {
         this.plugin.settings.excludedFolders = value.split(",").map((item) => item.trim()).filter(Boolean);
-        await this.plugin.saveSettings();
-      })
-    );
-    new import_obsidian2.Setting(containerEl).setName("\u6700\u77ED\u5B57\u6570").setDesc("\u77ED\u4E8E\u8FD9\u4E2A\u5B57\u6570\u7684\u7B14\u8BB0\u4E0D\u4F1A\u53C2\u4E0E\u540C\u6B65").addText(
-      (text) => text.setValue(String(this.plugin.settings.minNoteLength)).onChange(async (value) => {
-        const parsed = Number.parseInt(value, 10);
-        this.plugin.settings.minNoteLength = Number.isFinite(parsed) && parsed > 0 ? parsed : 50;
         await this.plugin.saveSettings();
       })
     );
