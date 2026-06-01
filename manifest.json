@@ -1,9 +1,9 @@
 {
   "id": "dailey-insight",
   "name": "Dailey Insight",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "minAppVersion": "1.0.0",
-  "description": "每天回顾你的历史笔记。",
+  "description": "每天推荐并重新阅读你的历史笔记。",
   "author": "Eania",
   "isDesktopOnly": false
 }

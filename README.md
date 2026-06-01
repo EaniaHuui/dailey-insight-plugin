@@ -102,7 +102,7 @@ npm run build
 
 调试目录示例：
 
-- `/Users/zhuhui/project/document/.obsidian/plugins/dailey-insight/`
+- `<vault>/.obsidian/plugins/dailey-insight/`
 
 ## 发布到 Obsidian 社区市场
 
