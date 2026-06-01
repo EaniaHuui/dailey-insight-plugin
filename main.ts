@@ -31,6 +31,9 @@ class ObsidianRecallPlugin extends Plugin {
 		this.addRibbonIcon("history", "Obsidian 每日回顾", async () => {
 			await this.openRecallReaderView();
 		});
+		this.addRibbonIcon("send", "一键推送当前笔记", async () => {
+			await this.pushActiveNoteNow();
+		});
 
 		this.addCommand({
 			id: "obsidian-recall-clear-token",
@@ -63,6 +66,13 @@ class ObsidianRecallPlugin extends Plugin {
 			name: "立即同步笔记",
 			callback: async () => {
 				await this.syncNow();
+			}
+		});
+		this.addCommand({
+			id: "obsidian-recall-push-active-note",
+			name: "一键推送当前笔记",
+			callback: async () => {
+				await this.pushActiveNoteNow();
 			}
 		});
 
@@ -260,6 +270,68 @@ class ObsidianRecallPlugin extends Plugin {
 		} catch (error) {
 			await this.recordDebug(`sync:error:${formatError(error)}`, true);
 			new Notice(`同步失败：${formatError(error)}`);
+		}
+	}
+
+	async pushActiveNoteNow(): Promise<void> {
+		if (!this.settings.token) {
+			new Notice("请先完成初始化或配置 Token，再执行一键推送");
+			return;
+		}
+
+		const file = this.app.workspace.getActiveFile();
+		if (!(file instanceof TFile) || file.extension !== "md") {
+			new Notice("请先打开一个 Markdown 笔记");
+			return;
+		}
+		if (this.shouldSkip(file.path)) {
+			new Notice("当前笔记命中过滤规则，无法推送");
+			return;
+		}
+
+		const content = await this.app.vault.cachedRead(file);
+		if (content.trim().length < this.settings.minNoteLength) {
+			new Notice(`当前笔记字数不足 ${this.settings.minNoteLength}，无法推送`);
+			return;
+		}
+
+		try {
+			await this.pushCurrentSettingsToServer();
+			const queueDays = Math.max(1, Math.min(30, this.settings.queueWindowDays || 7));
+			const status = await this.client().getQueueStatus(queueDays);
+			const dailyCount = Math.max(1, Math.min(20, status.daily_push_count || this.settings.dailyPushCount || 1));
+			const slot = this.pickNextQueueSlot(status.items, dailyCount, queueDays);
+			if (!slot) {
+				new Notice(`未来 ${queueDays} 天队列已满，请先提高每日条数或扩大预提交天数`);
+				return;
+			}
+
+			const queueItem: QueueRecallItem = {
+				path: file.path,
+				title: file.basename,
+				content,
+				content_hash: await sha256Hex(content),
+				note_updated_at: new Date(file.stat.mtime).toISOString(),
+				scheduled_date: slot.scheduledDate,
+				slot_index: slot.slotIndex
+			};
+			const response = await this.client().queueRecalls([queueItem]);
+			if (response.queued > 0) {
+				this.settings.queuedHistory = this.normalizePushedHistory([
+					...this.settings.queuedHistory,
+					{ path: file.path, pushedAt: `${slot.scheduledDate}T00:00:00.000Z` }
+				]);
+				this.settings.lastSyncAt = new Date().toISOString();
+				this.settings.lastSyncCount = response.queued;
+				await this.saveSettings();
+				await this.refreshRecallViews();
+				new Notice(`已加入推送队列：${slot.scheduledDate} 第${slot.slotIndex}条`);
+				return;
+			}
+			new Notice("加入队列失败：可能是内容重复或队列槽位冲突");
+		} catch (error) {
+			await this.recordDebug(`push-active:error:${formatError(error)}`, true);
+			new Notice(`一键推送失败：${formatError(error)}`);
 		}
 	}
 
@@ -595,6 +667,27 @@ class ObsidianRecallPlugin extends Plugin {
 			}
 		}
 		return plan;
+	}
+
+	private pickNextQueueSlot(
+		existing: Array<{ scheduled_date: string; slot_index: number; path: string }>,
+		dailyCount: number,
+		queueDays: number
+	): { scheduledDate: string; slotIndex: number } | null {
+		const existingKey = new Set(existing.map((item) => `${item.scheduled_date}#${item.slot_index}`));
+		for (let day = 0; day < queueDays; day++) {
+			const date = new Date();
+			date.setHours(0, 0, 0, 0);
+			date.setDate(date.getDate() + day);
+			const yyyyMmDd = date.toISOString().slice(0, 10);
+			for (let slot = 1; slot <= dailyCount; slot++) {
+				const key = `${yyyyMmDd}#${slot}`;
+				if (!existingKey.has(key)) {
+					return { scheduledDate: yyyyMmDd, slotIndex: slot };
+				}
+			}
+		}
+		return null;
 	}
 
 	private randomNote(notes: LocalNote[]): LocalNote | null {
