@@ -181,79 +181,88 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
     this.activeRecallPath = "";
   }
   async onload() {
-    await this.loadSettings();
-    await this.recordDebug("onload:start");
-    this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
-    this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
-    this.addRibbonIcon("history", "Obsidian \u6BCF\u65E5\u56DE\u987E", async () => {
-      await this.openRecallReaderView();
-    });
-    this.addRibbonIcon("send", "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0", async () => {
-      await this.pushActiveNoteNow();
-    });
-    this.addCommand({
-      id: "obsidian-recall-clear-token",
-      name: "\u6E05\u7A7A Obsidian \u6BCF\u65E5\u56DE\u987E Token",
-      callback: async () => {
-        this.settings.token = "";
-        await this.saveSettings();
-        new import_obsidian2.Notice("Token \u5DF2\u6E05\u7A7A");
-      }
-    });
-    this.addCommand({
-      id: "obsidian-recall-open-today",
-      name: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E",
-      callback: async () => {
+    try {
+      await this.loadSettings();
+      await this.recordDebug("onload:start");
+      this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
+      this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
+      this.addRibbonIcon("history", "Obsidian \u6BCF\u65E5\u56DE\u987E", async () => {
         await this.openRecallReaderView();
-      }
-    });
-    this.addCommand({
-      id: "obsidian-recall-open-sidebar",
-      name: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E\u4FA7\u8FB9\u680F",
-      callback: async () => {
-        await this.openRecallSidebarView(true);
-      }
-    });
-    this.addCommand({
-      id: "obsidian-recall-sync-now",
-      name: "\u7ACB\u5373\u540C\u6B65\u7B14\u8BB0",
-      callback: async () => {
-        await this.syncNow();
-      }
-    });
-    this.addCommand({
-      id: "obsidian-recall-push-active-note",
-      name: "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0",
-      callback: async () => {
+      });
+      this.addRibbonIcon("dice", "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0", async () => {
         await this.pushActiveNoteNow();
+      });
+      this.addCommand({
+        id: "obsidian-recall-clear-token",
+        name: "\u6E05\u7A7A Obsidian \u6BCF\u65E5\u56DE\u987E Token",
+        callback: async () => {
+          this.settings.token = "";
+          await this.saveSettings();
+          new import_obsidian2.Notice("Token \u5DF2\u6E05\u7A7A");
+        }
+      });
+      this.addCommand({
+        id: "obsidian-recall-open-today",
+        name: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E",
+        callback: async () => {
+          await this.openRecallReaderView();
+        }
+      });
+      this.addCommand({
+        id: "obsidian-recall-open-sidebar",
+        name: "\u6253\u5F00\u4ECA\u65E5\u56DE\u987E\u4FA7\u8FB9\u680F",
+        callback: async () => {
+          await this.openRecallSidebarView(true);
+        }
+      });
+      this.addCommand({
+        id: "obsidian-recall-sync-now",
+        name: "\u7ACB\u5373\u540C\u6B65\u7B14\u8BB0",
+        callback: async () => {
+          await this.syncNow();
+        }
+      });
+      this.addCommand({
+        id: "obsidian-recall-push-active-note",
+        name: "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0",
+        callback: async () => {
+          await this.pushActiveNoteNow();
+        }
+      });
+      this.addCommand({
+        id: "obsidian-recall-test-connection",
+        name: "\u6D4B\u8BD5\u670D\u52A1\u7AEF\u8FDE\u63A5",
+        callback: async () => {
+          await this.testConnection();
+        }
+      });
+      this.addCommand({
+        id: "obsidian-recall-logout",
+        name: "\u9000\u51FA\u5F53\u524D\u4F1A\u8BDD",
+        callback: async () => {
+          await this.logout();
+        }
+      });
+      this.addCommand({
+        id: "obsidian-recall-push-history",
+        name: "\u67E5\u770B\u63A8\u9001\u5386\u53F2",
+        callback: async () => {
+          await this.viewPushHistory();
+        }
+      });
+      this.addSettingTab(new RecallSettingTab(this.app, this));
+      await this.recordDebug("onload:ready");
+      this.app.workspace.onLayoutReady(() => {
+        void this.runStartupFlow();
+      });
+    } catch (error) {
+      console.error("Obsidian \u6BCF\u65E5\u56DE\u987E\u52A0\u8F7D\u5931\u8D25", error);
+      try {
+        await this.recordDebug(`onload:error:${formatError(error)}`, true);
+      } catch (e) {
       }
-    });
-    this.addCommand({
-      id: "obsidian-recall-test-connection",
-      name: "\u6D4B\u8BD5\u670D\u52A1\u7AEF\u8FDE\u63A5",
-      callback: async () => {
-        await this.testConnection();
-      }
-    });
-    this.addCommand({
-      id: "obsidian-recall-logout",
-      name: "\u9000\u51FA\u5F53\u524D\u4F1A\u8BDD",
-      callback: async () => {
-        await this.logout();
-      }
-    });
-    this.addCommand({
-      id: "obsidian-recall-push-history",
-      name: "\u67E5\u770B\u63A8\u9001\u5386\u53F2",
-      callback: async () => {
-        await this.viewPushHistory();
-      }
-    });
-    this.addSettingTab(new RecallSettingTab(this.app, this));
-    await this.recordDebug("onload:ready");
-    this.app.workspace.onLayoutReady(() => {
-      void this.runStartupFlow();
-    });
+      new import_obsidian2.Notice(`Obsidian \u6BCF\u65E5\u56DE\u987E\u52A0\u8F7D\u5931\u8D25\uFF1A${formatError(error)}`);
+    }
   }
   onunload() {
     this.app.workspace.detachLeavesOfType(RECALL_MAIN_VIEW);

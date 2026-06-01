@@ -22,20 +22,21 @@ class ObsidianRecallPlugin extends Plugin {
 	private activeRecallPath = "";
 
 	async onload(): Promise<void> {
-		await this.loadSettings();
-		await this.recordDebug("onload:start");
+		try {
+			await this.loadSettings();
+			await this.recordDebug("onload:start");
 
-		this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
-		this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
+			this.registerView(RECALL_MAIN_VIEW, (leaf) => new RecallReaderView(leaf, this));
+			this.registerView(RECALL_SIDEBAR_VIEW, (leaf) => new RecallSidebarView(leaf, this));
 
-		this.addRibbonIcon("history", "Obsidian 每日回顾", async () => {
-			await this.openRecallReaderView();
-		});
-		this.addRibbonIcon("send", "一键推送当前笔记", async () => {
-			await this.pushActiveNoteNow();
-		});
+			this.addRibbonIcon("history", "Obsidian 每日回顾", async () => {
+				await this.openRecallReaderView();
+			});
+			this.addRibbonIcon("dice", "一键推送当前笔记", async () => {
+				await this.pushActiveNoteNow();
+			});
 
-		this.addCommand({
+			this.addCommand({
 			id: "obsidian-recall-clear-token",
 			name: "清空 Obsidian 每日回顾 Token",
 			callback: async () => {
@@ -100,12 +101,21 @@ class ObsidianRecallPlugin extends Plugin {
 			}
 		});
 
-		this.addSettingTab(new RecallSettingTab(this.app, this));
-		await this.recordDebug("onload:ready");
+			this.addSettingTab(new RecallSettingTab(this.app, this));
+			await this.recordDebug("onload:ready");
 
-		this.app.workspace.onLayoutReady(() => {
-			void this.runStartupFlow();
-		});
+			this.app.workspace.onLayoutReady(() => {
+				void this.runStartupFlow();
+			});
+		} catch (error) {
+			console.error("Obsidian 每日回顾加载失败", error);
+			try {
+				await this.recordDebug(`onload:error:${formatError(error)}`, true);
+			} catch {
+				// ignore debug persistence errors
+			}
+			new Notice(`Obsidian 每日回顾加载失败：${formatError(error)}`);
+		}
 	}
 
 	onunload(): void {
