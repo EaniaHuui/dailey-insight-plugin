@@ -48,7 +48,7 @@ class ObsidianRecallPlugin extends Plugin {
 
 		this.addCommand({
 			id: "insight-flow-open-today",
-			name: "打开今日回顾",
+			name: "打开今日推荐",
 			callback: async () => {
 				await this.openRecallReaderView();
 			}
@@ -56,7 +56,7 @@ class ObsidianRecallPlugin extends Plugin {
 
 		this.addCommand({
 			id: "insight-flow-open-sidebar",
-			name: "打开今日回顾侧边栏",
+			name: "打开今日推荐侧边栏",
 			callback: async () => {
 				await this.openRecallSidebarView(true);
 			}
@@ -332,7 +332,7 @@ class ObsidianRecallPlugin extends Plugin {
 		await this.recordDebug("sync:local:start");
 		const queueDays = Math.max(1, Math.min(30, this.settings.queueWindowDays || 7));
 		this.settings.queueWindowDays = queueDays;
-		new Notice(`开始补齐未来 ${queueDays} 天回顾队列`);
+		new Notice(`开始补齐未来 ${queueDays} 天推荐队列`);
 
 		const localNotes = await this.collectLocalNotes();
 		await this.recordDebug(`sync:local:collected:${localNotes.length}`);
@@ -988,7 +988,7 @@ class RecallReaderView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "今日回顾";
+		return "今日推荐";
 	}
 
 	getIcon(): string {
@@ -1009,7 +1009,7 @@ class RecallReaderView extends ItemView {
 		const progress = this.plugin.getTodayProgress(items);
 		const firstUnread = this.plugin.findNextUnreadIndex(items);
 		if (items.length === 0) {
-			renderRecallEmptyState(contentEl, this.plugin, "今天还没有可阅读的回顾内容。");
+			renderRecallEmptyState(contentEl, this.plugin, "今天还没有可阅读的推荐内容。");
 			return;
 		}
 		const focusedPath = this.plugin.consumeActiveRecallPath();
@@ -1034,7 +1034,7 @@ class RecallReaderView extends ItemView {
 		const shell = contentEl.createDiv({ cls: "insight-flow-reader-shell" });
 		const header = shell.createDiv({ cls: "insight-flow-reader-header" });
 		const titleBlock = header.createDiv();
-		titleBlock.createEl("div", { text: "今日回顾", cls: "insight-flow-eyebrow" });
+		titleBlock.createEl("div", { text: "今日推荐", cls: "insight-flow-eyebrow" });
 		titleBlock.createEl("h2", { text: today, cls: "insight-flow-reader-title" });
 
 		const progressBar = shell.createDiv({ cls: "insight-flow-progress" });
@@ -1054,7 +1054,7 @@ class RecallReaderView extends ItemView {
 		pathEl.title = current.path;
 		const badgeRow = cardTop.createDiv({ cls: "insight-flow-card-badges" });
 		if (state.revisit) {
-			badgeRow.createSpan({ text: "已加入再回顾", cls: "insight-flow-badge insight-flow-badge-accent" });
+			badgeRow.createSpan({ text: "已加入再推荐", cls: "insight-flow-badge insight-flow-badge-accent" });
 		} else if (state.snoozed) {
 			badgeRow.createSpan({ text: "稍后再看", cls: "insight-flow-badge" });
 		} else if (state.read) {
@@ -1066,7 +1066,7 @@ class RecallReaderView extends ItemView {
 
 		if (progress.read >= progress.total) {
 			const completion = card.createDiv({ cls: "insight-flow-completion" });
-			completion.createDiv({ text: "今天的回顾已经处理完了。", cls: "insight-flow-completion-title" });
+			completion.createDiv({ text: "今天的推荐已经处理完了。", cls: "insight-flow-completion-title" });
 			completion.createDiv({ text: `未来 7 天库存 ${this.plugin.getFutureInventoryCount(7)} 条` });
 		}
 
@@ -1109,7 +1109,7 @@ class RecallReaderView extends ItemView {
 			await this.render();
 		};
 
-		const revisitButton = footer.createEl("button", { text: state.revisit ? "已加入再回顾" : "加入再回顾" });
+		const revisitButton = footer.createEl("button", { text: state.revisit ? "已加入再推荐" : "加入再推荐" });
 		revisitButton.onclick = async () => {
 			await this.plugin.updateRecallState(current.sourceDate, current.path, {
 				revisit: !state.revisit
@@ -1147,7 +1147,7 @@ class RecallSidebarView extends ItemView {
 	}
 
 	getDisplayText(): string {
-		return "回顾队列";
+		return "推荐队列";
 	}
 
 	getIcon(): string {
@@ -1167,7 +1167,7 @@ class RecallSidebarView extends ItemView {
 		const progress = this.plugin.getTodayProgress(items);
 
 		const wrap = contentEl.createDiv({ cls: "insight-flow-sidebar-shell" });
-		wrap.createEl("h3", { text: "每日回顾", cls: "insight-flow-sidebar-title" });
+		wrap.createEl("h3", { text: "每日推荐", cls: "insight-flow-sidebar-title" });
 
 		const stats = wrap.createDiv({ cls: "insight-flow-sidebar-stats" });
 		stats.createDiv({ text: `今日队列：${progress.total} 条` });
@@ -1176,7 +1176,7 @@ class RecallSidebarView extends ItemView {
 		stats.createDiv({ text: `未来 7 天库存：${this.plugin.getFutureInventoryCount(7)} 条` });
 
 		const actionRow = wrap.createDiv({ cls: "insight-flow-sidebar-actions" });
-		const openButton = actionRow.createEl("button", { text: "打开今日回顾" });
+		const openButton = actionRow.createEl("button", { text: "打开今日推荐" });
 		openButton.addClass("mod-cta");
 		openButton.onclick = async () => {
 			await this.plugin.openRecallReaderView();
@@ -1188,7 +1188,7 @@ class RecallSidebarView extends ItemView {
 		};
 
 		if (items.length === 0) {
-			wrap.createDiv({ text: "今天还没有可阅读的回顾内容。", cls: "insight-flow-sidebar-empty" });
+			wrap.createDiv({ text: "今天还没有可阅读的推荐内容。", cls: "insight-flow-sidebar-empty" });
 			return;
 		}
 
@@ -1224,7 +1224,7 @@ class RecallSidebarView extends ItemView {
 function renderRecallEmptyState(containerEl: HTMLElement, plugin: ObsidianRecallPlugin, message: string): void {
 	const shell = containerEl.createDiv({ cls: "insight-flow-reader-shell" });
 	const card = shell.createDiv({ cls: "insight-flow-card insight-flow-card-empty" });
-	card.createEl("h3", { text: "今日回顾", cls: "insight-flow-card-title" });
+	card.createEl("h3", { text: "今日推荐", cls: "insight-flow-card-title" });
 	card.createDiv({ text: message, cls: "insight-flow-empty-text" });
 	const actions = card.createDiv({ cls: "insight-flow-toolbar" });
 	const syncButton = actions.createEl("button", { text: "立即补齐队列" });
@@ -1246,7 +1246,7 @@ class RecallSettingTab extends PluginSettingTab {
 		containerEl.addClass("insight-flow-settings");
 		containerEl.createEl("h2", { text: "Insight Flow 设置" });
 		containerEl.createEl("p", {
-			text: "用于从本地抽取笔记并预提交到服务端，按计划生成每日回顾（RSS 可订阅）。"
+			text: "用于从本地抽取笔记并预提交到服务端，按计划生成每日推荐（RSS 可订阅）。"
 		});
 
 		const statusLines = [
@@ -1359,7 +1359,7 @@ class RecallSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName("启用 Cubox 推送")
-			.setDesc("开启后会把回顾内容通过 Cubox API 写入你的 Cubox")
+			.setDesc("开启后会把推荐内容通过 Cubox API 写入你的 Cubox")
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.enableCubox).onChange(async (value) => {
 					this.plugin.settings.enableCubox = value;
@@ -1395,7 +1395,7 @@ class RecallSettingTab extends PluginSettingTab {
 
 			new Setting(containerEl)
 				.setName("Cubox 标签")
-				.setDesc("可选，逗号分隔，例如 Obsidian, 回顾")
+				.setDesc("可选，逗号分隔，例如 Obsidian, 推荐")
 				.addText((text) =>
 					text.setValue(this.plugin.settings.cuboxTags.join(", ")).onChange(async (value) => {
 						this.plugin.settings.cuboxTags = value
@@ -1433,7 +1433,7 @@ class RecallSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("预提交天数")
 			.setDesc(
-				"每次打开 Obsidian 时，会把未来 N 天的回顾库存补齐到服务端（1-30 天）。即使你后续几天不打开 Obsidian，服务器也可按计划持续推送。"
+					"每次打开 Obsidian 时，会把未来 N 天的推荐库存补齐到服务端（1-30 天）。即使你后续几天不打开 Obsidian，服务器也可按计划持续推送。"
 			)
 			.addButton((button) => {
 				button.buttonEl.addClass("insight-flow-step-btn");
