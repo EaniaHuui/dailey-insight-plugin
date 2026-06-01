@@ -32,7 +32,7 @@ class ObsidianRecallPlugin extends Plugin {
 			this.addRibbonIcon("history", "Obsidian 每日回顾", async () => {
 				await this.openRecallReaderView();
 			});
-			this.addRibbonIcon("dice", "一键推送当前笔记", async () => {
+			this.addRibbonIcon("rocket", "一键推送当前笔记", async () => {
 				await this.pushActiveNoteNow();
 			});
 
@@ -194,7 +194,7 @@ class ObsidianRecallPlugin extends Plugin {
 				this.settings.excludedFolders = response.excluded_folders;
 			this.settings.minNoteLength = response.min_note_length;
 			await this.saveSettings();
-			new Notice("设置已保存到服务端");
+			new Notice("已保存");
 		} catch (error) {
 			new Notice(`保存设置失败：${formatError(error)}`);
 		}

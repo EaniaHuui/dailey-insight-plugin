@@ -192,7 +192,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       this.addRibbonIcon("history", "Obsidian \u6BCF\u65E5\u56DE\u987E", async () => {
         await this.openRecallReaderView();
       });
-      this.addRibbonIcon("dice", "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0", async () => {
+      this.addRibbonIcon("rocket", "\u4E00\u952E\u63A8\u9001\u5F53\u524D\u7B14\u8BB0", async () => {
         await this.pushActiveNoteNow();
       });
       this.addCommand({
@@ -335,7 +335,7 @@ var ObsidianRecallPlugin = class extends import_obsidian2.Plugin {
       this.settings.excludedFolders = response.excluded_folders;
       this.settings.minNoteLength = response.min_note_length;
       await this.saveSettings();
-      new import_obsidian2.Notice("\u8BBE\u7F6E\u5DF2\u4FDD\u5B58\u5230\u670D\u52A1\u7AEF");
+      new import_obsidian2.Notice("\u5DF2\u4FDD\u5B58");
     } catch (error) {
       new import_obsidian2.Notice(`\u4FDD\u5B58\u8BBE\u7F6E\u5931\u8D25\uFF1A${formatError(error)}`);
     }
